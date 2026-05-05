@@ -28,10 +28,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <h1 className="text-lg font-bold text-zinc-900">工作任务管理</h1>
       </div>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <User className="h-5 w-5" />
-          </Button>
+        <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full h-9 w-9 hover:bg-zinc-100">
+          <User className="h-5 w-5" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
