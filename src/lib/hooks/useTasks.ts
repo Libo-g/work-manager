@@ -8,20 +8,22 @@ const supabase = createClient();
 
 export function useTasks(projectId: string | null) {
   return useQuery({
-    queryKey: ['tasks', projectId],
+    queryKey: ['tasks', projectId ?? 'all'],
     queryFn: async () => {
-      if (!projectId) return [];
-
-      const { data, error } = await supabase
+      let query = supabase
         .from('tasks')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('position', { ascending: true });
+        .select('*');
 
+      if (projectId) {
+        query = query.eq('project_id', projectId);
+      }
+
+      query = query.order('position', { ascending: true });
+
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as Task[];
     },
-    enabled: !!projectId,
   });
 }
 
@@ -51,7 +53,7 @@ export function useCreateTask() {
       return data as Task;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', data.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
@@ -83,7 +85,7 @@ export function useUpdateTask() {
       return data as Task;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', data.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
@@ -98,7 +100,7 @@ export function useDeleteTask() {
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

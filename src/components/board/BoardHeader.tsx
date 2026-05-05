@@ -8,7 +8,7 @@ import type { TaskPriority } from '@/lib/types';
 
 interface BoardHeaderProps {
   selectedProject: string | null;
-  onProjectChange: (id: string) => void;
+  onProjectChange: (id: string | null) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   priorityFilter: TaskPriority | 'all';
@@ -27,11 +27,12 @@ export function BoardHeader({
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
-      <Select value={selectedProject ?? ''} onValueChange={(v) => v && onProjectChange(v)}>
+      <Select value={selectedProject ?? 'all'} onValueChange={(v) => onProjectChange(v === 'all' ? null : v)}>
         <SelectTrigger className="w-full sm:w-52">
-          <SelectValue placeholder={isLoading ? '加载中...' : '选择项目'} />
+          <SelectValue placeholder={isLoading ? '加载中...' : '全部项目'} />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="all">全部项目</SelectItem>
           {projects?.map((p) => (
             <SelectItem key={p.id} value={p.id}>
               <span className="flex items-center gap-2">

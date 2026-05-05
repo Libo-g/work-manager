@@ -11,9 +11,11 @@ interface TaskCardProps {
   task: Task;
   isDragging?: boolean;
   onClick?: () => void;
+  projectName?: string;
+  projectColor?: string;
 }
 
-export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
+export function TaskCard({ task, isDragging, onClick, projectName, projectColor }: TaskCardProps) {
   return (
     <Card
       className={`group cursor-pointer hover:shadow-md transition-shadow ${
@@ -30,6 +32,14 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          {projectName && (
+            <span
+              className="text-xs px-1.5 py-0.5 rounded-full text-white max-w-24 truncate"
+              style={{ backgroundColor: projectColor ?? '#6B7280' }}
+            >
+              {projectName}
+            </span>
+          )}
           <PriorityBadge priority={task.priority} />
         </div>
 

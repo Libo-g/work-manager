@@ -11,6 +11,7 @@ interface BoardColumnProps {
   status: TaskStatus;
   tasks: Task[];
   onTaskClick: (task: Task) => void;
+  projectMap?: Map<string, { name: string; color: string }>;
 }
 
 const COLUMN_COLORS: Record<TaskStatus, string> = {
@@ -20,7 +21,7 @@ const COLUMN_COLORS: Record<TaskStatus, string> = {
   done: 'border-t-green-400',
 };
 
-export function BoardColumn({ status, tasks, onTaskClick }: BoardColumnProps) {
+export function BoardColumn({ status, tasks, onTaskClick, projectMap }: BoardColumnProps) {
   return (
     <div className="flex flex-col w-72 shrink-0">
       <div className="flex items-center justify-between mb-3 px-1">
@@ -56,6 +57,8 @@ export function BoardColumn({ status, tasks, onTaskClick }: BoardColumnProps) {
                       task={task}
                       isDragging={snapshot.isDragging}
                       onClick={() => onTaskClick(task)}
+                      projectName={projectMap?.get(task.project_id)?.name}
+                      projectColor={projectMap?.get(task.project_id)?.color}
                     />
                   </div>
                 )}

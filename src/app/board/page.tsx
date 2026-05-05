@@ -30,9 +30,9 @@ function readStoredFilter(): { status: TaskStatus | 'all'; due: string | null } 
 }
 
 export default function BoardPage() {
-  // Read sessionStorage once on mount as lazy initializer
   const initFilter = useState(() => readStoredFilter())[0];
 
+  // null = all projects
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
@@ -40,11 +40,18 @@ export default function BoardPage() {
   const [dueFilter, setDueFilter] = useState<string | null>(initFilter.due);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const { data: projects } = useProjects();
+  const { data: projects = [] } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
   const createTask = useCreateTask();
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Build project lookup map
+  const projectMap = useMemo(() => {
+    const map = new Map<string, { name: string; color: string }>();
+    projects.forEach((p) => map.set(p.id, { name: p.name, color: p.color }));
+    return map;
+  }, [projects]);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
@@ -66,7 +73,10 @@ export default function BoardPage() {
   const hasActiveFilter = statusFilter !== 'all' || dueFilter || priorityFilter !== 'all' || searchQuery;
 
   async function handleQuickCreate() {
-    if (!selectedProject) return;
+    if (!selectedProject) {
+      showError('请先选择一个项目再创建任务');
+      return;
+    }
     const title = window.prompt('输入任务标题:');
     if (!title?.trim()) return;
 
@@ -95,7 +105,7 @@ export default function BoardPage() {
         onPriorityChange={setPriorityFilter}
       />
 
-      {selectedProject && hasActiveFilter && (
+      {hasActiveFilter && (
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xs text-zinc-400">筛选：</span>
           {statusFilter !== 'all' && (
@@ -122,13 +132,7 @@ export default function BoardPage() {
         </div>
       )}
 
-      {!selectedProject ? (
-        <EmptyState
-          icon={FolderKanban}
-          title="选择一个项目开始"
-          description="从上方下拉菜单中选择项目，或去设置页创建一个"
-        />
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <p className="text-zinc-400">加载中...</p>
         </div>
@@ -138,19 +142,21 @@ export default function BoardPage() {
             <Plus className="h-4 w-4" />
             新建任务
           </Button>
-          {filteredTasks.length === 0 && hasActiveFilter ? (
+          {filteredTasks.length === 0 ? (
             <EmptyState
               icon={FolderKanban}
-              title="没有匹配的任务"
-              description="尝试调整或清除筛选条件"
-              action={
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  清除筛选
-                </Button>
-              }
+              title={hasActiveFilter ? '没有匹配的任务' : '暂无任务'}
+              description={hasActiveFilter ? '尝试调整或清除筛选条件' : '选择一个项目后点击"新建任务"开始'}
+              action={hasActiveFilter ? (
+                <Button variant="outline" size="sm" onClick={clearFilters}>清除筛选</Button>
+              ) : undefined}
             />
           ) : (
-            <BoardColumns tasks={filteredTasks} onTaskClick={setEditingTask} />
+            <BoardColumns
+              tasks={filteredTasks}
+              onTaskClick={setEditingTask}
+              projectMap={selectedProject ? undefined : projectMap}
+            />
           )}
         </div>
       )}

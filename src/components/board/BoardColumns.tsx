@@ -9,9 +9,10 @@ import { showError } from '@/components/shared/Toast';
 interface BoardColumnsProps {
   tasks: Task[];
   onTaskClick: (task: Task) => void;
+  projectMap?: Map<string, { name: string; color: string }>;
 }
 
-export function BoardColumns({ tasks, onTaskClick }: BoardColumnsProps) {
+export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsProps) {
   const updateTask = useUpdateTask();
 
   function getColumnTasks(status: TaskStatus): Task[] {
@@ -62,6 +63,7 @@ export function BoardColumns({ tasks, onTaskClick }: BoardColumnsProps) {
             status={status}
             tasks={getColumnTasks(status)}
             onTaskClick={onTaskClick}
+            projectMap={projectMap}
           />
         ))}
       </div>
