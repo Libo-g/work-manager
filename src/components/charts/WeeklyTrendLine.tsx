@@ -29,10 +29,10 @@ export function WeeklyTrendLine({ tasks, days }: WeeklyTrendLineProps) {
       <CardHeader><CardTitle className="text-base">趋势图（近 {days} 天）</CardTitle></CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={data}>
+          <LineChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: -10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="date" fontSize={12} />
-            <YAxis allowDecimals={false} />
+            <YAxis allowDecimals={false} width={30} />
             <Tooltip />
             <Legend />
             <Line type="monotone" dataKey="created" stroke="#3B82F6" name="新建" strokeWidth={2} dot={false} />

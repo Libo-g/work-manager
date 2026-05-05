@@ -22,10 +22,10 @@ export function PriorityBarChart({ tasks }: PriorityBarChartProps) {
       <CardHeader><CardTitle className="text-base">优先级分布</CardTitle></CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={data}>
+          <BarChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: -10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="name" />
-            <YAxis allowDecimals={false} />
+            <YAxis allowDecimals={false} width={30} />
             <Tooltip />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={40}>
               {data.map((entry, index) => (
