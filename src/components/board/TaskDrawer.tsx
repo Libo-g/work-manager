@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS, PRIORITY_LABELS } from '@/lib/types';
 import { useUpdateTask, useDeleteTask } from '@/lib/hooks/useTasks';
+import { useTags } from '@/lib/hooks/useTags';
+import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -24,8 +26,13 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const { data: allTags = [] } = useTags();
+  const { data: currentTagIds = [] } = useTaskTags(task?.id);
+  const setTaskTags = useSetTaskTags();
 
   useEffect(() => {
     if (task) {
@@ -37,19 +44,32 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
     }
   }, [task]);
 
+  useEffect(() => {
+    setSelectedTags(currentTagIds);
+  }, [currentTagIds]);
+
   if (!task) return null;
+
+  function toggleTag(tagId: string) {
+    setSelectedTags((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+    );
+  }
 
   async function handleSave() {
     if (!title.trim()) return;
     try {
-      await updateTask.mutateAsync({
-        id: task!.id,
-        title: title.trim(),
-        description: description.trim() || null,
-        status,
-        priority,
-        due_date: dueDate || null,
-      });
+      await Promise.all([
+        updateTask.mutateAsync({
+          id: task!.id,
+          title: title.trim(),
+          description: description.trim() || null,
+          status,
+          priority,
+          due_date: dueDate || null,
+        }),
+        setTaskTags.mutateAsync({ taskId: task!.id, tagIds: selectedTags }),
+      ]);
       showSuccess('已保存');
     } catch {
       showError('保存失败');
@@ -92,7 +112,7 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
 
           <div className="space-y-2">
             <Label>状态</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
+            <Select value={status} onValueChange={(v) => v && setStatus(v as TaskStatus)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(Object.entries(STATUS_LABELS) as [TaskStatus, string][]).map(([key, label]) => (
@@ -104,7 +124,7 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
 
           <div className="space-y-2">
             <Label>优先级</Label>
-            <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
+            <Select value={priority} onValueChange={(v) => v && setPriority(v as TaskPriority)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(Object.entries(PRIORITY_LABELS) as [TaskPriority, string][]).map(([key, label]) => (
@@ -119,9 +139,37 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
             <Input id="task-due" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
 
+          {/* 标签选择 */}
+          {allTags.length > 0 && (
+            <div className="space-y-2">
+              <Label>标签</Label>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => toggleTag(tag.id)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      selectedTags.includes(tag.id)
+                        ? 'text-white border-transparent'
+                        : 'hover:bg-zinc-100'
+                    }`}
+                    style={
+                      selectedTags.includes(tag.id)
+                        ? { backgroundColor: tag.color, borderColor: tag.color }
+                        : { borderColor: tag.color, color: tag.color }
+                    }
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-2">
-            <Button className="flex-1" onClick={handleSave} disabled={updateTask.isPending}>
-              {updateTask.isPending ? '保存中...' : '保存'}
+            <Button className="flex-1" onClick={handleSave} disabled={updateTask.isPending || setTaskTags.isPending}>
+              {updateTask.isPending || setTaskTags.isPending ? '保存中...' : '保存'}
             </Button>
             <Button variant="destructive" size="icon" onClick={handleDelete} disabled={deleteTask.isPending}>
               <Trash2 className="h-4 w-4" />
