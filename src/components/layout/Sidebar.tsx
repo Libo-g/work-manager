@@ -30,7 +30,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
 
   return (
     <aside className={cn(
-      'flex flex-col border-r border-zinc-200 bg-white transition-all duration-300',
+      'flex flex-col h-full bg-white transition-all duration-300 shadow-[1px_0_3px_rgba(0,0,0,0.04)] rounded-br-2xl',
       collapsed ? 'w-16' : 'w-56'
     )}>
       <nav className="flex-1 space-y-1 p-2">
