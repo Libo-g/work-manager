@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS } from '@/lib/types';
 import { PriorityBadge } from '@/components/shared/PriorityBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { TaskDrawer } from '@/components/board/TaskDrawer';
+import { TaskEditDialog } from './TaskEditDialog';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -108,7 +108,7 @@ export function TaskListDialog({ open, onClose, title, status, due, priority }: 
         </DialogContent>
       </Dialog>
 
-      <TaskDrawer
+      <TaskEditDialog
         task={editingTask}
         open={!!editingTask}
         onClose={() => {
