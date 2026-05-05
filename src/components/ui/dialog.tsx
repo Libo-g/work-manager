@@ -58,6 +58,8 @@ function DialogContent({
         )}
         {...props}
       >
+        {/* 吸收自动焦点，防止手机端打开弹窗时弹出输入法 */}
+        <div tabIndex={0} className="absolute opacity-0 w-0 h-0" aria-hidden="true" />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
