@@ -1,8 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Kanban, PieChart, Settings } from 'lucide-react';
 import type { ComponentType } from 'react';
 
@@ -26,6 +25,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className={cn(
@@ -36,11 +36,12 @@ export function Sidebar({ collapsed }: SidebarProps) {
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           return (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
+              type="button"
+              onClick={() => router.push(item.href)}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer',
                 isActive
                   ? 'bg-zinc-900 text-white'
                   : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
@@ -48,7 +49,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
-            </Link>
+            </button>
           );
         })}
       </nav>
