@@ -27,9 +27,11 @@ export function useCreateProject() {
 
   return useMutation({
     mutationFn: async (input: { name: string; color: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('未登录');
       const { data, error } = await supabase
         .from('projects')
-        .insert(input)
+        .insert({ ...input, user_id: user.id })
         .select()
         .single();
 

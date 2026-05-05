@@ -40,7 +40,7 @@ export function useCreateTask() {
     }) => {
       const { data, error } = await supabase
         .from('tasks')
-        .insert(input)
+        .insert({ ...input, user_id: (await supabase.auth.getUser()).data.user?.id })
         .select()
         .single();
 
