@@ -12,6 +12,7 @@ import { useProjects } from '@/lib/hooks/useProjects';
 import { useTags } from '@/lib/hooks/useTags';
 import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
+import { SubtaskList } from '@/components/shared/SubtaskList';
 import { Trash2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
@@ -192,6 +193,13 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 子任务 */}
+          {task && (
+            <div className="pt-4 border-t">
+              <SubtaskList taskId={task.id} projectId={task.project_id} />
             </div>
           )}
 

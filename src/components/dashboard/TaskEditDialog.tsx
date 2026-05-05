@@ -12,6 +12,7 @@ import { useProjects } from '@/lib/hooks/useProjects';
 import { useTags } from '@/lib/hooks/useTags';
 import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
+import { SubtaskList } from '@/components/shared/SubtaskList';
 import { Trash2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
@@ -191,6 +192,11 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
               </div>
             </div>
           )}
+
+          {/* 子任务 */}
+          <div className="pt-4 border-t">
+            <SubtaskList taskId={task.id} projectId={task.project_id} />
+          </div>
 
           <div className="flex gap-3 pt-2">
             <Button className="flex-1" onClick={handleSave} disabled={updateTask.isPending}>
