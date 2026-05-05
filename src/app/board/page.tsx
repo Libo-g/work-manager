@@ -12,23 +12,29 @@ import { Badge } from '@/components/ui/badge';
 import { type Task, type TaskPriority, type TaskStatus, STATUS_LABELS } from '@/lib/types';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { FolderKanban, Plus, X } from 'lucide-react';
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 function BoardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Read initial filters from URL
-  const urlStatus = searchParams.get('status') as TaskStatus | null;
+  // Read current URL params
+  const urlStatus = (searchParams.get('status') ?? 'all') as TaskStatus | 'all';
   const urlDue = searchParams.get('due');
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(urlStatus ?? 'all');
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(urlStatus);
   const [dueFilter, setDueFilter] = useState<string | null>(urlDue);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // Sync state with URL params whenever they change
+  useEffect(() => {
+    setStatusFilter(urlStatus);
+    setDueFilter(urlDue);
+  }, [urlStatus, urlDue]);
 
   const { data: projects } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
