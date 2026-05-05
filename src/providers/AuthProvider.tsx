@@ -24,10 +24,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -39,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
     router.push('/auth/login');
   };
 

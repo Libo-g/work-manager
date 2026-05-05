@@ -1,19 +1,20 @@
 'use client';
 
 import { useAuth } from '@/providers/AuthProvider';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user && pathname !== '/auth/login') {
-      router.push('/auth/login');
+    if (!loading && !user && window.location.pathname !== '/auth/login') {
+      router.replace('/auth/login');
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, router]);
+
+  const isLoginPage = typeof window !== 'undefined' && window.location.pathname === '/auth/login';
 
   if (loading) {
     return (
@@ -23,7 +24,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user && pathname !== '/auth/login') {
+  if (!user && !isLoginPage) {
     return null;
   }
 
