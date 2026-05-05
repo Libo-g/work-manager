@@ -4,19 +4,50 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { signIn, signUp } from '../actions';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
-    const result = isLogin ? await signIn(formData) : await signUp(formData);
-    if (result?.error) {
-      setError(result.error);
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      if (isLogin) {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+        if (err) {
+          setError(err.message);
+          setLoading(false);
+          return;
+        }
+        router.push('/');
+      } else {
+        const { error: err } = await supabase.auth.signUp({ email, password });
+        if (err) {
+          setError(err.message);
+          setLoading(false);
+          return;
+        }
+        setIsLogin(true);
+        setError('注册成功！请重新输入密码登录');
+      }
+    } catch {
+      setError('网络错误，请重试');
     }
+
+    setLoading(false);
   }
 
   return (
@@ -28,7 +59,7 @@ export default function LoginPage() {
             {isLogin ? '登录你的账号' : '创建新账号'}
           </CardDescription>
         </CardHeader>
-        <form action={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">邮箱</Label>
@@ -52,12 +83,14 @@ export default function LoginPage() {
               />
             </div>
             {error && (
-              <p className="text-sm text-red-500">{error}</p>
+              <p className={`text-sm ${error.includes('成功') ? 'text-green-500' : 'text-red-500'}`}>
+                {error}
+              </p>
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full">
-              {isLogin ? '登录' : '注册'}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? '处理中...' : (isLogin ? '登录' : '注册')}
             </Button>
             <Button
               type="button"
