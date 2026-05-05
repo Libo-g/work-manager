@@ -25,11 +25,17 @@ export function BoardHeader({
 }: BoardHeaderProps) {
   const { data: projects, isLoading } = useProjects();
 
+  const selectedName = selectedProject
+    ? projects?.find((p) => p.id === selectedProject)?.name ?? selectedProject
+    : '全部项目';
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
       <Select value={selectedProject ?? 'all'} onValueChange={(v) => onProjectChange(v === 'all' ? null : v)}>
         <SelectTrigger className="w-full sm:w-52">
-          <SelectValue placeholder={isLoading ? '加载中...' : '全部项目'} />
+          <SelectValue placeholder={isLoading ? '加载中...' : '全部项目'}>
+            {selectedName}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部项目</SelectItem>
