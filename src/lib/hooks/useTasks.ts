@@ -52,6 +52,7 @@ export function useCreateTask() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', data.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -83,6 +84,7 @@ export function useUpdateTask() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', data.project_id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -97,6 +99,7 @@ export function useDeleteTask() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }

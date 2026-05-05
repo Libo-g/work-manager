@@ -21,21 +21,23 @@ function readStoredFilter(): { status: TaskStatus | 'all'; due: string | null } 
     if (raw) {
       const parsed = JSON.parse(raw);
       sessionStorage.removeItem('boardFilter');
-      const status = ['todo', 'in_progress', 'review', 'done'].includes(parsed.status) ? parsed.status as TaskStatus : 'all';
+      const s = parsed.status;
+      const status = (s === 'todo' || s === 'in_progress' || s === 'review' || s === 'done') ? s : 'all';
       return { status, due: parsed.due ?? null };
     }
   } catch { /* ignore */ }
   return { status: 'all', due: null };
 }
 
-const initialFilter = readStoredFilter();
-
 export default function BoardPage() {
+  // Read sessionStorage once on mount as lazy initializer
+  const initFilter = useState(() => readStoredFilter())[0];
+
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(initialFilter.status);
-  const [dueFilter, setDueFilter] = useState<string | null>(initialFilter.due);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(initFilter.status);
+  const [dueFilter, setDueFilter] = useState<string | null>(initFilter.due);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const { data: projects } = useProjects();
