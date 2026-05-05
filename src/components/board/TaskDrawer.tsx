@@ -12,7 +12,7 @@ import { useTags } from '@/lib/hooks/useTags';
 import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface TaskDrawerProps {
   task: Task | null;
@@ -34,6 +34,8 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
   const { data: currentTagIds = [] } = useTaskTags(task?.id);
   const setTaskTags = useSetTaskTags();
 
+  const tagsInitialized = useRef(false);
+
   useEffect(() => {
     if (task) {
       setTitle(task.title);
@@ -41,12 +43,17 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
       setStatus(task.status);
       setPriority(task.priority);
       setDueDate(task.due_date ?? '');
+      tagsInitialized.current = false;
     }
-  }, [task]);
+  }, [task?.id]);
 
+  // Initialize selected tags once when server data arrives for the current task
   useEffect(() => {
-    setSelectedTags(currentTagIds);
-  }, [currentTagIds]);
+    if (!tagsInitialized.current) {
+      setSelectedTags([...currentTagIds]);
+      tagsInitialized.current = true;
+    }
+  }, [currentTagIds, task?.id]);
 
   if (!task) return null;
 
