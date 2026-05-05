@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { PwaRegister } from '@/components/shared/PwaRegister';
-import { AuthGuard } from '@/components/shared/AuthGuard';
 import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
@@ -27,9 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased">
         <QueryProvider>
           <AuthProvider>
-            <AuthGuard>
-              {children}
-            </AuthGuard>
+            {children}
             <Toaster />
             <PwaRegister />
           </AuthProvider>
