@@ -8,28 +8,53 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { useTasks, useCreateTask } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { Button } from '@/components/ui/button';
-import { type Task, type TaskPriority } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+import { type Task, type TaskPriority, type TaskStatus, STATUS_LABELS } from '@/lib/types';
 import { showSuccess, showError } from '@/components/shared/Toast';
-import { FolderKanban, Plus } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { FolderKanban, Plus, X } from 'lucide-react';
+import { useState, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function BoardPage() {
+function BoardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Read initial filters from URL
+  const urlStatus = searchParams.get('status') as TaskStatus | null;
+  const urlDue = searchParams.get('due');
+
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(urlStatus ?? 'all');
+  const [dueFilter, setDueFilter] = useState<string | null>(urlDue);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const { data: projects } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
   const createTask = useCreateTask();
 
+  const today = new Date().toISOString().split('T')[0];
+
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
+      if (statusFilter !== 'all' && task.status !== statusFilter) return false;
+      if (dueFilter === 'today' && task.due_date !== today) return false;
       if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
       return true;
     });
-  }, [tasks, searchQuery, priorityFilter]);
+  }, [tasks, searchQuery, priorityFilter, statusFilter, dueFilter, today]);
+
+  function clearFilters() {
+    setStatusFilter('all');
+    setDueFilter(null);
+    setPriorityFilter('all');
+    setSearchQuery('');
+    router.replace('/board');
+  }
+
+  const hasActiveFilter = statusFilter !== 'all' || dueFilter || priorityFilter !== 'all' || searchQuery;
 
   async function handleQuickCreate() {
     if (!selectedProject) return;
@@ -61,11 +86,43 @@ export default function BoardPage() {
         onPriorityChange={setPriorityFilter}
       />
 
+      {/* 活动筛选标签 */}
+      {selectedProject && hasActiveFilter && (
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xs text-zinc-400">筛选:</span>
+          {statusFilter !== 'all' && (
+            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => setStatusFilter('all')}>
+              {STATUS_LABELS[statusFilter]}
+              <X className="h-3 w-3" />
+            </Badge>
+          )}
+          {dueFilter === 'today' && (
+            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => setDueFilter(null)}>
+              今日到期
+              <X className="h-3 w-3" />
+            </Badge>
+          )}
+          {priorityFilter !== 'all' && (
+            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => setPriorityFilter('all')}>
+              优先级: {priorityFilter}
+              <X className="h-3 w-3" />
+            </Badge>
+          )}
+          <Button variant="ghost" size="sm" className="text-xs text-zinc-400 h-6" onClick={clearFilters}>
+            清除全部
+          </Button>
+        </div>
+      )}
+
       {!selectedProject ? (
         <EmptyState
           icon={FolderKanban}
           title="选择一个项目开始"
-          description="从上方下拉菜单中选择项目，或去设置页创建一个"
+          description={
+            statusFilter !== 'all' || dueFilter
+              ? '当前筛选条件需先选择项目才能查看'
+              : '从上方下拉菜单中选择项目，或去设置页创建一个'
+          }
         />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16">
@@ -77,7 +134,20 @@ export default function BoardPage() {
             <Plus className="h-4 w-4" />
             新建任务
           </Button>
-          <BoardColumns tasks={filteredTasks} onTaskClick={setEditingTask} />
+          {filteredTasks.length === 0 && hasActiveFilter ? (
+            <EmptyState
+              icon={FolderKanban}
+              title="没有匹配的任务"
+              description="尝试调整或清除筛选条件"
+              action={
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  清除筛选
+                </Button>
+              }
+            />
+          ) : (
+            <BoardColumns tasks={filteredTasks} onTaskClick={setEditingTask} />
+          )}
         </div>
       )}
 
@@ -87,5 +157,13 @@ export default function BoardPage() {
         onClose={() => setEditingTask(null)}
       />
     </AppLayout>
+  );
+}
+
+export default function BoardPage() {
+  return (
+    <Suspense>
+      <BoardContent />
+    </Suspense>
   );
 }
