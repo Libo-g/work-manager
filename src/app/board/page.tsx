@@ -48,17 +48,18 @@ export default function BoardPage() {
 
     syncFromUrl(); // initial read
 
-    // Intercept pushState/replaceState for SPA navigation
+    // Intercept pushState/replaceState for SPA navigation.
+    // Defer state update to avoid React scheduling errors during render.
     const origPush = history.pushState.bind(history);
     const origReplace = history.replaceState.bind(history);
 
     history.pushState = function (...args) {
       origPush(...args);
-      syncFromUrl();
+      setTimeout(syncFromUrl, 0);
     };
     history.replaceState = function (...args) {
       origReplace(...args);
-      syncFromUrl();
+      setTimeout(syncFromUrl, 0);
     };
     window.addEventListener('popstate', syncFromUrl);
 
