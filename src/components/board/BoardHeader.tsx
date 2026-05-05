@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { Search } from 'lucide-react';
-import type { TaskPriority } from '@/lib/types';
+import { type TaskPriority, PRIORITY_LABELS } from '@/lib/types';
 
 interface BoardHeaderProps {
   selectedProject: string | null;
@@ -62,7 +62,9 @@ export function BoardHeader({
 
       <Select value={priorityFilter} onValueChange={(v) => v && onPriorityChange(v as TaskPriority | 'all')}>
         <SelectTrigger className="w-full sm:w-28">
-          <SelectValue placeholder="优先级" />
+          <SelectValue placeholder="优先级">
+            {priorityFilter === 'all' ? '全部' : PRIORITY_LABELS[priorityFilter]}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">全部</SelectItem>

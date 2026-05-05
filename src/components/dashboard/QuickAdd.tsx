@@ -125,7 +125,7 @@ export function QuickAdd() {
             <div className="space-y-2">
               <Label>状态</Label>
               <Select value={status} onValueChange={(v) => v && setStatus(v as TaskStatus)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue>{STATUS_LABELS[status]}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {(Object.entries(STATUS_LABELS) as [TaskStatus, string][]).map(([key, label]) => (
                     <SelectItem key={key} value={key}>{label}</SelectItem>
@@ -136,7 +136,7 @@ export function QuickAdd() {
             <div className="space-y-2">
               <Label>优先级</Label>
               <Select value={priority} onValueChange={(v) => v && setPriority(v as TaskPriority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue>{PRIORITY_LABELS[priority]}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {(Object.entries(PRIORITY_LABELS) as [TaskPriority, string][]).map(([key, label]) => (
                     <SelectItem key={key} value={key}>{label}</SelectItem>
