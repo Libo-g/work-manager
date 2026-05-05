@@ -68,12 +68,12 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="mb-6">
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-6">
+        <SheetHeader>
           <SheetTitle className="text-lg">任务详情</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-5 px-0.5 pb-6">
           <div className="space-y-2">
             <Label htmlFor="task-title">标题</Label>
             <Input id="task-title" value={title} onChange={(e) => setTitle(e.target.value)} />
