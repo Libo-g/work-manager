@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS, PRIORITY_LABELS } from '@/lib/types';
 import { useUpdateTask, useDeleteTask } from '@/lib/hooks/useTasks';
+import { useProjects } from '@/lib/hooks/useProjects';
 import { useTags } from '@/lib/hooks/useTags';
 import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
@@ -23,6 +24,7 @@ interface TaskEditDialogProps {
 export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [projectId, setProjectId] = useState('');
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
@@ -30,6 +32,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
 
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const { data: projects = [] } = useProjects();
   const { data: allTags = [] } = useTags();
   const { data: currentTagIds = [] } = useTaskTags(task?.id);
   const setTaskTags = useSetTaskTags();
@@ -39,6 +42,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
     if (task) {
       setTitle(task.title);
       setDescription(task.description ?? '');
+      setProjectId(task.project_id);
       setStatus(task.status);
       setPriority(task.priority);
       setDueDate(task.due_date ?? '');
@@ -69,6 +73,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
           id: task!.id,
           title: title.trim(),
           description: description.trim() || null,
+          project_id: projectId || undefined,
           status,
           priority,
           due_date: dueDate || null,
@@ -114,6 +119,22 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
               rows={3}
               placeholder="添加描述..."
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>所属项目</Label>
+            <Select value={projectId} onValueChange={(v) => v && setProjectId(v)}>
+              <SelectTrigger>
+                <SelectValue>
+                  {projects.find((p) => p.id === projectId)?.name ?? '选择项目'}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
