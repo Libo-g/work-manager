@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Kanban, PieChart, Settings } from 'lucide-react';
+import { LayoutDashboard, Kanban, PieChart, Settings, CalendarDays } from 'lucide-react';
 import type { ComponentType } from 'react';
 
 interface NavItem {
@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { href: '/', label: '仪表盘', icon: LayoutDashboard },
   { href: '/board', label: '看板', icon: Kanban },
   { href: '/charts', label: '图表', icon: PieChart },
+  { href: '/timeline', label: '时间线', icon: CalendarDays },
   { href: '/settings', label: '设置', icon: Settings },
 ];
 
