@@ -27,7 +27,7 @@ export function PriorityBarChart({ tasks }: PriorityBarChartProps) {
             <XAxis dataKey="name" />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={40}>
               {data.map((entry, index) => (
                 <Cell key={index} fill={entry.fill} />
               ))}
