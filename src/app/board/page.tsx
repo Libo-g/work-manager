@@ -12,34 +12,31 @@ import { Badge } from '@/components/ui/badge';
 import { type Task, type TaskPriority, type TaskStatus, STATUS_LABELS } from '@/lib/types';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { FolderKanban, Plus, X } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
-function readStoredFilter(): { status: TaskStatus | null; due: string | null } {
+function readStoredFilter(): { status: TaskStatus | 'all'; due: string | null } {
+  if (typeof window === 'undefined') return { status: 'all', due: null };
   try {
     const raw = sessionStorage.getItem('boardFilter');
     if (raw) {
       const parsed = JSON.parse(raw);
       sessionStorage.removeItem('boardFilter');
-      return { status: parsed.status ?? null, due: parsed.due ?? null };
+      const status = ['todo', 'in_progress', 'review', 'done'].includes(parsed.status) ? parsed.status as TaskStatus : 'all';
+      return { status, due: parsed.due ?? null };
     }
   } catch { /* ignore */ }
-  return { status: null, due: null };
+  return { status: 'all', due: null };
 }
+
+const initialFilter = readStoredFilter();
 
 export default function BoardPage() {
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
-  const [dueFilter, setDueFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(initialFilter.status);
+  const [dueFilter, setDueFilter] = useState<string | null>(initialFilter.due);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-
-  // Read initial filter from sessionStorage on mount
-  useEffect(() => {
-    const stored = readStoredFilter();
-    if (stored.status) setStatusFilter(stored.status);
-    if (stored.due) setDueFilter(stored.due);
-  }, []);
 
   const { data: projects } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
