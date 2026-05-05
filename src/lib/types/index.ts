@@ -1,0 +1,63 @@
+export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Project {
+  id: string;
+  name: string;
+  color: string;
+  is_archived: boolean;
+  user_id: string;
+  created_at: string;
+}
+
+export interface Task {
+  id: string;
+  project_id: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date: string | null;
+  position: number;
+  parent_id: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  tags?: Tag[];
+  subtasks?: Task[];
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  user_id: string;
+}
+
+export interface TaskTag {
+  task_id: string;
+  tag_id: string;
+}
+
+export const STATUS_LABELS: Record<TaskStatus, string> = {
+  todo: '待处理',
+  in_progress: '进行中',
+  review: '待审核',
+  done: '已完成',
+};
+
+export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  low: '低',
+  medium: '中',
+  high: '高',
+  urgent: '紧急',
+};
+
+export const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  low: '#6B7280',
+  medium: '#3B82F6',
+  high: '#F59E0B',
+  urgent: '#EF4444',
+};
+
+export const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];

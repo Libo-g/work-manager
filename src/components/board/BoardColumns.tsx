@@ -1,0 +1,70 @@
+'use client';
+
+import { type Task, type TaskStatus, STATUS_ORDER } from '@/lib/types';
+import { BoardColumn } from './BoardColumn';
+import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
+import { useUpdateTask } from '@/lib/hooks/useTasks';
+import { showError } from '@/components/shared/Toast';
+
+interface BoardColumnsProps {
+  tasks: Task[];
+  onTaskClick: (task: Task) => void;
+}
+
+export function BoardColumns({ tasks, onTaskClick }: BoardColumnsProps) {
+  const updateTask = useUpdateTask();
+
+  function getColumnTasks(status: TaskStatus): Task[] {
+    return tasks
+      .filter((t) => t.status === status)
+      .sort((a, b) => a.position - b.position);
+  }
+
+  async function handleDragEnd(result: DropResult) {
+    const { draggableId, source, destination } = result;
+
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+    const newStatus = destination.droppableId as TaskStatus;
+    const columnTasks = getColumnTasks(newStatus);
+
+    let newPosition: number;
+    if (columnTasks.length === 0) {
+      newPosition = 0;
+    } else if (destination.index === 0) {
+      newPosition = columnTasks[0].position - 1000;
+    } else if (destination.index >= columnTasks.length) {
+      newPosition = columnTasks[columnTasks.length - 1].position + 1000;
+    } else {
+      const before = columnTasks[destination.index - 1]?.position ?? 0;
+      const after = columnTasks[destination.index]?.position ?? 0;
+      newPosition = Math.floor((before + after) / 2);
+    }
+
+    try {
+      await updateTask.mutateAsync({
+        id: draggableId,
+        status: newStatus,
+        position: newPosition,
+      });
+    } catch {
+      showError('操作失败，已回滚');
+    }
+  }
+
+  return (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {STATUS_ORDER.map((status) => (
+          <BoardColumn
+            key={status}
+            status={status}
+            tasks={getColumnTasks(status)}
+            onTaskClick={onTaskClick}
+          />
+        ))}
+      </div>
+    </DragDropContext>
+  );
+}
