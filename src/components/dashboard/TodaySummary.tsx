@@ -6,8 +6,18 @@ import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { CheckCircle, Clock, AlertCircle, ListTodo } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import type { ComponentType } from 'react';
 
 const supabase = createClient();
+
+interface SummaryItem {
+  label: string;
+  value: number;
+  icon: ComponentType<{ className?: string }>;
+  color: string;
+  status?: string;
+  due?: string;
+}
 
 export function TodaySummary() {
   const { user } = useAuth();
@@ -39,11 +49,11 @@ export function TodaySummary() {
 
   if (isLoading || !stats) return null;
 
-  const items = [
-    { label: '总任务', value: stats.total, icon: ListTodo, color: 'text-zinc-600', href: '/board?view=all' },
-    { label: '已完成', value: stats.done, icon: CheckCircle, color: 'text-green-600', href: '/board?status=done' },
-    { label: '进行中', value: stats.inProgress, icon: Clock, color: 'text-blue-600', href: '/board?status=in_progress' },
-    { label: '今日到期', value: stats.dueToday, icon: AlertCircle, color: 'text-orange-600', href: '/board?due=today' },
+  const items: SummaryItem[] = [
+    { label: '总任务', value: stats.total, icon: ListTodo, color: 'text-zinc-600' },
+    { label: '已完成', value: stats.done, icon: CheckCircle, color: 'text-green-600', status: 'done' },
+    { label: '进行中', value: stats.inProgress, icon: Clock, color: 'text-blue-600', status: 'in_progress' },
+    { label: '今日到期', value: stats.dueToday, icon: AlertCircle, color: 'text-orange-600', due: 'today' },
   ];
 
   return (
@@ -52,7 +62,10 @@ export function TodaySummary() {
         <Card
           key={item.label}
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => router.push(item.href)}
+          onClick={() => {
+            sessionStorage.setItem('boardFilter', JSON.stringify({ status: item.status, due: item.due }));
+            router.push('/board');
+          }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-zinc-500">{item.label}</CardTitle>

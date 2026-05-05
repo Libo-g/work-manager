@@ -20,11 +20,13 @@ const AuthContext = createContext<AuthContextValue>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
 
   useEffect(() => {
+    setMounted(true);
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
         setUser(session?.user ?? null);
@@ -44,12 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Redirect to login if not authenticated and not on login page
+  // Redirect if not authenticated (skip on auth pages)
   useEffect(() => {
-    if (!loading && !user && pathname !== '/auth/login' && !pathname.startsWith('/auth/')) {
+    if (mounted && !loading && !user && pathname !== '/auth/login') {
       router.replace('/auth/login');
     }
-  }, [user, loading, pathname, router]);
+  }, [mounted, user, loading, pathname, router]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -57,7 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/auth/login');
   };
 
-  // Show loading spinner while checking auth
+  // During SSR (before mount), render children to avoid hydration mismatch
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-50">
@@ -66,12 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  // On login page, render children directly
-  if (!user && (pathname === '/auth/login' || pathname.startsWith('/auth/'))) {
-    return <>{children}</>;
+  // On login page, always render
+  if (pathname === '/auth/login') {
+    return (
+      <AuthContext.Provider value={{ user, loading, signOut }}>
+        {children}
+      </AuthContext.Provider>
+    );
   }
 
-  // Not authenticated and not on login page — show nothing (redirect will happen)
+  // Not authenticated on protected page
   if (!user) {
     return null;
   }
