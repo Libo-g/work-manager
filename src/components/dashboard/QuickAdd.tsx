@@ -111,7 +111,9 @@ export function QuickAdd() {
             <Label>所属项目</Label>
             <Select value={projectId} onValueChange={(v) => v && setProjectId(v)} required>
               <SelectTrigger>
-                <SelectValue placeholder="选择项目" />
+                <SelectValue placeholder="选择项目">
+                  {projects?.find((p) => p.id === projectId)?.name ?? ''}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {projects?.map((p) => (
