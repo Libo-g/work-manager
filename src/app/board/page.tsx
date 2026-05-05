@@ -12,29 +12,64 @@ import { Badge } from '@/components/ui/badge';
 import { type Task, type TaskPriority, type TaskStatus, STATUS_LABELS } from '@/lib/types';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { FolderKanban, Plus, X } from 'lucide-react';
-import { useState, useMemo, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
-function BoardContent() {
-  const searchParams = useSearchParams();
+// Read filter params from URL without useSearchParams
+function getUrlFilter(): { status: TaskStatus | 'all'; due: string | null } {
+  if (typeof window === 'undefined') return { status: 'all', due: null };
+  const params = new URLSearchParams(window.location.search);
+  return {
+    status: (params.get('status') ?? 'all') as TaskStatus | 'all',
+    due: params.get('due'),
+  };
+}
+
+export default function BoardPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
 
-  // Read current URL params
-  const urlStatus = (searchParams.get('status') ?? 'all') as TaskStatus | 'all';
-  const urlDue = searchParams.get('due');
+  // Read initial URL params on mount
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
+  const [dueFilter, setDueFilter] = useState<string | null>(null);
 
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>(urlStatus);
-  const [dueFilter, setDueFilter] = useState<string | null>(urlDue);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Sync state with URL params whenever they change
+  // On mount and on any navigation, read URL params
   useEffect(() => {
-    setStatusFilter(urlStatus);
-    setDueFilter(urlDue);
-  }, [urlStatus, urlDue]);
+    const syncFromUrl = () => {
+      const { status, due } = getUrlFilter();
+      setStatusFilter(status);
+      setDueFilter(due);
+    };
+
+    syncFromUrl(); // initial read
+
+    // Intercept pushState/replaceState for SPA navigation
+    const origPush = history.pushState.bind(history);
+    const origReplace = history.replaceState.bind(history);
+
+    history.pushState = function (...args) {
+      origPush(...args);
+      syncFromUrl();
+    };
+    history.replaceState = function (...args) {
+      origReplace(...args);
+      syncFromUrl();
+    };
+    window.addEventListener('popstate', syncFromUrl);
+
+    setMounted(true);
+
+    return () => {
+      history.pushState = origPush;
+      history.replaceState = origReplace;
+      window.removeEventListener('popstate', syncFromUrl);
+    };
+  }, []);
 
   const { data: projects } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
@@ -52,12 +87,23 @@ function BoardContent() {
     });
   }, [tasks, searchQuery, priorityFilter, statusFilter, dueFilter, today]);
 
+  // Navigate with filter and update local state
+  const navigateWithFilter = useCallback((newStatus: TaskStatus | 'all', newDue: string | null) => {
+    setStatusFilter(newStatus);
+    setDueFilter(newDue);
+    const params = new URLSearchParams();
+    if (newStatus !== 'all') params.set('status', newStatus);
+    if (newDue) params.set('due', newDue);
+    const qs = params.toString();
+    router.push('/board' + (qs ? `?${qs}` : ''));
+  }, [router]);
+
   function clearFilters() {
     setStatusFilter('all');
     setDueFilter(null);
     setPriorityFilter('all');
     setSearchQuery('');
-    router.replace('/board');
+    router.push('/board');
   }
 
   const hasActiveFilter = statusFilter !== 'all' || dueFilter || priorityFilter !== 'all' || searchQuery;
@@ -81,6 +127,16 @@ function BoardContent() {
     }
   }
 
+  if (!mounted) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center py-16">
+          <p className="text-zinc-400">加载中...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <BoardHeader
@@ -92,18 +148,17 @@ function BoardContent() {
         onPriorityChange={setPriorityFilter}
       />
 
-      {/* 活动筛选标签 */}
       {selectedProject && hasActiveFilter && (
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xs text-zinc-400">筛选:</span>
           {statusFilter !== 'all' && (
-            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => setStatusFilter('all')}>
+            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => navigateWithFilter('all', dueFilter)}>
               {STATUS_LABELS[statusFilter]}
               <X className="h-3 w-3" />
             </Badge>
           )}
           {dueFilter === 'today' && (
-            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => setDueFilter(null)}>
+            <Badge variant="secondary" className="gap-1 cursor-pointer" onClick={() => navigateWithFilter(statusFilter, null)}>
               今日到期
               <X className="h-3 w-3" />
             </Badge>
@@ -124,11 +179,7 @@ function BoardContent() {
         <EmptyState
           icon={FolderKanban}
           title="选择一个项目开始"
-          description={
-            statusFilter !== 'all' || dueFilter
-              ? '当前筛选条件需先选择项目才能查看'
-              : '从上方下拉菜单中选择项目，或去设置页创建一个'
-          }
+          description="从上方下拉菜单中选择项目，或去设置页创建一个"
         />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16">
@@ -163,13 +214,5 @@ function BoardContent() {
         onClose={() => setEditingTask(null)}
       />
     </AppLayout>
-  );
-}
-
-export default function BoardPage() {
-  return (
-    <Suspense>
-      <BoardContent />
-    </Suspense>
   );
 }
