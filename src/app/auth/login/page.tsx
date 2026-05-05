@@ -8,6 +8,20 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+const ERROR_ZH: Record<string, string> = {
+  'Invalid login credentials': '邮箱或密码错误',
+  'Email not confirmed': '邮箱未验证，请先验证邮箱',
+  'User already registered': '该邮箱已注册，请直接登录',
+  'Password should be at least 6 characters': '密码至少需要 6 位',
+};
+
+function toZh(err: string): string {
+  for (const [en, zh] of Object.entries(ERROR_ZH)) {
+    if (err.includes(en)) return zh;
+  }
+  return `操作失败：${err}`;
+}
+
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,15 +42,15 @@ export default function LoginPage() {
       if (isLogin) {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password });
         if (err) {
-          setError(err.message);
+          setError(toZh(err.message));
           setLoading(false);
           return;
         }
         router.push('/');
       } else {
-        const { error: err } = await supabase.auth.signUp({ email, password });
-        if (err) {
-          setError(err.message);
+        const { error: err2 } = await supabase.auth.signUp({ email, password });
+        if (err2) {
+          setError(toZh(err2.message));
           setLoading(false);
           return;
         }
