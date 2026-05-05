@@ -32,8 +32,9 @@ export function QuickAdd() {
       showSuccess('任务已创建');
       setTitle('');
       setOpen(false);
-    } catch {
-      showError('创建失败，请重试');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '创建失败';
+      showError(`创建失败：${msg}`);
     }
   }
 

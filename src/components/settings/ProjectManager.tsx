@@ -25,8 +25,9 @@ export function ProjectManager() {
       });
       setNewName('');
       showSuccess('项目已创建');
-    } catch {
-      showError('创建失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '未知错误';
+      showError(`创建失败：${msg}`);
     }
   }
 
@@ -35,8 +36,9 @@ export function ProjectManager() {
     try {
       await deleteProject.mutateAsync(id);
       showSuccess('已删除');
-    } catch {
-      showError('删除失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '未知错误';
+      showError(`删除失败：${msg}`);
     }
   }
 

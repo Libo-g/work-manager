@@ -38,9 +38,12 @@ export function useCreateTask() {
       due_date?: string;
       position?: number;
     }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('未登录');
+
       const { data, error } = await supabase
         .from('tasks')
-        .insert({ ...input, user_id: (await supabase.auth.getUser()).data.user?.id })
+        .insert({ ...input, user_id: user.id })
         .select()
         .single();
 

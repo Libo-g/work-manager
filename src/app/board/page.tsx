@@ -44,8 +44,9 @@ export default function BoardPage() {
         position: 0,
       });
       showSuccess('任务已创建');
-    } catch {
-      showError('创建失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '创建失败';
+      showError(`创建失败：${msg}`);
     }
   }
 
