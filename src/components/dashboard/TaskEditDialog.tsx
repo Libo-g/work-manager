@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS, PRIORITY_LABELS } from '@/lib/types';
+import type { RecurrenceType } from '@/lib/types';
+import { RecurrencePicker } from '@/components/shared/RecurrencePicker';
 import { useUpdateTask, useDeleteTask } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { useTags } from '@/lib/hooks/useTags';
@@ -29,6 +31,8 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(null);
+  const [nextDueDate, setNextDueDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const updateTask = useUpdateTask();
@@ -47,6 +51,8 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
       setStatus(task.status);
       setPriority(task.priority);
       setDueDate(task.due_date ?? '');
+      setRecurrenceType(task.recurrence_type ?? null);
+      setNextDueDate(task.next_due_date ?? '');
       tagsInitialized.current = false;
     }
   }, [task?.id]);
@@ -78,6 +84,9 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
           status,
           priority,
           due_date: dueDate || null,
+          recurrence_type: recurrenceType || null,
+          next_due_date: recurrenceType ? (nextDueDate || dueDate || null) : null,
+          recurrence_start: recurrenceType ? (task!.recurrence_start ?? new Date().toISOString()) : null,
         }),
         setTaskTags.mutateAsync({ taskId: task!.id, tagIds: selectedTags }),
       ]);
@@ -121,6 +130,8 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
               placeholder="添加描述..."
             />
           </div>
+
+          <RecurrencePicker value={recurrenceType} onChange={setRecurrenceType} />
 
           <div className="space-y-2">
             <Label>所属项目</Label>

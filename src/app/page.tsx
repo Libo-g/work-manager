@@ -1,5 +1,6 @@
 import { AppLayout } from '@/components/layout/AppLayout';
 import { TodaySummary } from '@/components/dashboard/TodaySummary';
+import { RecurringReminder } from '@/components/dashboard/RecurringReminder';
 import { UpcomingDeadlines } from '@/components/dashboard/UpcomingDeadlines';
 import { ProjectProgress } from '@/components/dashboard/ProjectProgress';
 import { QuickAdd } from '@/components/dashboard/QuickAdd';
@@ -13,6 +14,7 @@ export default function DashboardPage() {
       </div>
       <div className="space-y-6">
         <TodaySummary />
+        <RecurringReminder />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <UpcomingDeadlines />
           <ProjectProgress />

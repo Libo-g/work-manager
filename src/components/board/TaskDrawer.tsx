@@ -6,14 +6,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS, PRIORITY_LABELS } from '@/lib/types';
+import { type Task, type TaskStatus, type TaskPriority, STATUS_LABELS, PRIORITY_LABELS, RECURRENCE_LABELS } from '@/lib/types';
+import type { RecurrenceType } from '@/lib/types';
 import { useUpdateTask, useDeleteTask } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { useTags } from '@/lib/hooks/useTags';
 import { useTaskTags, useSetTaskTags } from '@/lib/hooks/useTaskTags';
+import { useRecurringTaskHistory, useCompleteRecurringTask } from '@/lib/hooks/useRecurringTaskHistory';
+import { RecurrencePicker } from '@/components/shared/RecurrencePicker';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { SubtaskList } from '@/components/shared/SubtaskList';
-import { Trash2 } from 'lucide-react';
+import { CheckCircle, Trash2, RotateCw } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 interface TaskDrawerProps {
@@ -29,13 +32,17 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(null);
+  const [nextDueDate, setNextDueDate] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const completeRecurring = useCompleteRecurringTask();
   const { data: projects = [] } = useProjects();
   const { data: allTags = [] } = useTags();
   const { data: currentTagIds = [] } = useTaskTags(task?.id);
+  const { data: history = [] } = useRecurringTaskHistory(task?.id);
   const setTaskTags = useSetTaskTags();
 
   const tagsInitialized = useRef(false);
@@ -48,6 +55,8 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
       setStatus(task.status);
       setPriority(task.priority);
       setDueDate(task.due_date ?? '');
+      setRecurrenceType(task.recurrence_type ?? null);
+      setNextDueDate(task.next_due_date ?? '');
       tagsInitialized.current = false;
     }
   }, [task?.id]);
@@ -80,12 +89,29 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
           status,
           priority,
           due_date: dueDate || null,
+          recurrence_type: recurrenceType || null,
+          next_due_date: recurrenceType ? (nextDueDate || dueDate || null) : null,
+          recurrence_start: recurrenceType ? (task!.recurrence_start ?? new Date().toISOString()) : null,
         }),
         setTaskTags.mutateAsync({ taskId: task!.id, tagIds: selectedTags }),
       ]);
       showSuccess('已保存');
     } catch {
       showError('保存失败');
+    }
+  }
+
+  async function handleComplete() {
+    if (!task?.recurrence_type || !task?.next_due_date) return;
+    try {
+      await completeRecurring.mutateAsync({
+        taskId: task.id,
+        recurrenceType: task.recurrence_type,
+        nextDueDate: task.next_due_date,
+      });
+      showSuccess('已完成，已进入下一周期');
+    } catch {
+      showError('操作失败');
     }
   }
 
@@ -122,6 +148,8 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
               placeholder="添加描述..."
             />
           </div>
+
+          <RecurrencePicker value={recurrenceType} onChange={setRecurrenceType} />
 
           <div className="space-y-2">
             <Label>所属项目</Label>
@@ -191,6 +219,54 @@ export function TaskDrawer({ task, open, onClose }: TaskDrawerProps) {
                   >
                     {tag.name}
                   </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 周期任务完成按钮 */}
+          {task.recurrence_type && task.next_due_date && (
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-sm font-medium text-zinc-700">
+                    {RECURRENCE_LABELS[task.recurrence_type]} · 下次到期
+                  </span>
+                  <span className="text-sm text-zinc-500 ml-2">
+                    {new Date(task.next_due_date).toLocaleDateString('zh-CN')}
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleComplete}
+                  disabled={completeRecurring.isPending}
+                  className="flex items-center gap-1.5"
+                >
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  {completeRecurring.isPending ? '处理中...' : '完成'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* 完成历史 */}
+          {task.recurrence_type && history.length > 0 && (
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium text-zinc-700 mb-2">完成记录</h4>
+              <div className="space-y-2">
+                {history.map((entry) => (
+                  <div key={entry.id} className="flex items-center gap-2 text-xs text-zinc-500">
+                    {entry.type === 'manual' ? (
+                      <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <RotateCw className="h-3.5 w-3.5 text-zinc-400" />
+                    )}
+                    <span>{new Date(entry.completed_date).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-zinc-400">
+                      {entry.type === 'manual' ? '手动完成' : '自动顺延'}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>

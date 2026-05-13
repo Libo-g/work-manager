@@ -4,11 +4,15 @@ import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { MobileNav } from './MobileNav';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useAuth } from '@/providers/AuthProvider';
+import { useAutoResetRecurring } from '@/lib/hooks/useAutoResetRecurring';
 import { useState, type ReactNode } from 'react';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
+  useAutoResetRecurring(user?.id);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-zinc-50">

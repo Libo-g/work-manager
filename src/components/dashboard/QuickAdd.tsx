@@ -12,6 +12,9 @@ import { useCreateTask } from '@/lib/hooks/useTasks';
 import { useSetTaskTags } from '@/lib/hooks/useTaskTags';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { type TaskPriority, type TaskStatus, STATUS_LABELS, PRIORITY_LABELS } from '@/lib/types';
+import type { RecurrenceType } from '@/lib/types';
+import { RecurrencePicker } from '@/components/shared/RecurrencePicker';
+import { addMonths } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,6 +26,7 @@ export function QuickAdd() {
   const [status, setStatus] = useState<TaskStatus>('todo');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const { data: projects } = useProjects();
@@ -37,6 +41,7 @@ export function QuickAdd() {
     setStatus('todo');
     setPriority('medium');
     setDueDate('');
+    setRecurrenceType(null);
     setSelectedTags([]);
   }
 
@@ -45,6 +50,11 @@ export function QuickAdd() {
     if (!title.trim() || !projectId) return;
 
     try {
+      const nextDueDate = recurrenceType && dueDate
+        ? dueDate
+        : null;
+      const recurrenceStart = recurrenceType ? new Date().toISOString() : null;
+
       const created = await createTask.mutateAsync({
         project_id: projectId,
         title: title.trim(),
@@ -53,6 +63,9 @@ export function QuickAdd() {
         priority,
         due_date: dueDate || undefined,
         position: 0,
+        recurrence_type: recurrenceType || null,
+        next_due_date: nextDueDate,
+        recurrence_start: recurrenceStart,
       });
 
       if (selectedTags.length > 0) {
@@ -106,6 +119,8 @@ export function QuickAdd() {
               placeholder="任务描述（选填）"
             />
           </div>
+
+          <RecurrencePicker value={recurrenceType} onChange={setRecurrenceType} />
 
           <div className="space-y-2">
             <Label>所属项目</Label>

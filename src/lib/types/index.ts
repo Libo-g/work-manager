@@ -1,5 +1,20 @@
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type RecurrenceType = 'monthly' | 'quarterly' | 'semi_annual' | 'annual';
+
+export const RECURRENCE_LABELS: Record<RecurrenceType, string> = {
+  monthly: '月度',
+  quarterly: '季度',
+  semi_annual: '半年',
+  annual: '年度',
+};
+
+export const RECURRENCE_REMINDER_DAYS: Record<RecurrenceType, number> = {
+  monthly: 3,
+  quarterly: 7,
+  semi_annual: 10,
+  annual: 15,
+};
 
 export interface Project {
   id: string;
@@ -20,11 +35,22 @@ export interface Task {
   due_date: string | null;
   position: number;
   parent_id: string | null;
+  recurrence_type: RecurrenceType | null;
+  next_due_date: string | null;
+  recurrence_start: string | null;
   user_id: string;
   created_at: string;
   updated_at: string;
   tags?: Tag[];
   subtasks?: Task[];
+}
+
+export interface CompletionHistoryEntry {
+  id: string;
+  task_id: string;
+  completed_date: string;
+  type: 'manual' | 'auto';
+  created_at: string;
 }
 
 export interface Tag {

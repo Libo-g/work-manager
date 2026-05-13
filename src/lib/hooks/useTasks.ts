@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
-import type { Task, TaskStatus } from '@/lib/types';
+import type { Task, TaskStatus, RecurrenceType } from '@/lib/types';
 
 const supabase = createClient();
 
@@ -39,6 +39,9 @@ export function useCreateTask() {
       priority?: string;
       due_date?: string;
       position?: number;
+      recurrence_type?: RecurrenceType | null;
+      next_due_date?: string | null;
+      recurrence_start?: string | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('未登录');
@@ -72,6 +75,9 @@ export function useUpdateTask() {
       priority?: string;
       due_date?: string | null;
       position?: number;
+      recurrence_type?: RecurrenceType | null;
+      next_due_date?: string | null;
+      recurrence_start?: string | null;
     }) => {
       const { id, ...fields } = input;
       const { data, error } = await supabase
