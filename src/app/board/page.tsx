@@ -22,7 +22,7 @@ function readStoredFilter(): { status: TaskStatus | 'all'; due: string | null } 
       const parsed = JSON.parse(raw);
       sessionStorage.removeItem('boardFilter');
       const s = parsed.status;
-      const status = (s === 'todo' || s === 'in_progress' || s === 'review' || s === 'done') ? s : 'all';
+      const status = (s === 'todo' || s === 'in_progress' || s === 'done') ? s : 'all';
       return { status, due: parsed.due ?? null };
     }
   } catch { /* ignore */ }

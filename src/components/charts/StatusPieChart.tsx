@@ -7,7 +7,6 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 const STATUS_COLORS: Record<TaskStatus, string> = {
   todo: '#A1A1AA',
   in_progress: '#3B82F6',
-  review: '#F59E0B',
   done: '#22C55E',
 };
 

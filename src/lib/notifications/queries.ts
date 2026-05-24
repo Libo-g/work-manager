@@ -99,7 +99,7 @@ export async function getDailySummary(
   const total = tasks.length;
   const done = tasks.filter((t) => t.status === 'done').length;
   const inProgress = tasks.filter(
-    (t) => t.status === 'in_progress' || t.status === 'review'
+    (t) => t.status === 'in_progress'
   ).length;
   const todo = tasks.filter((t) => t.status === 'todo').length;
   const overdue = tasks.filter(
@@ -122,7 +122,7 @@ export async function getInProgressInWeek(
     .from('tasks')
     .select('id, title, status, priority, due_date, project_id, projects(name)')
     .eq('user_id', userId)
-    .in('status', ['in_progress', 'review'])
+    .eq('status', 'in_progress')
     .not('due_date', 'is', null)
     .gte('due_date', todayStr)
     .lte('due_date', sevenDaysStr)

@@ -106,7 +106,7 @@ export function GanttChart({ tasks, projects }: GanttChartProps) {
 
               // Status color
               const statusColors: Record<string, string> = {
-                done: '#22C55E', in_progress: '#3B82F6', review: '#F59E0B', todo: '#A1A1AA',
+                done: '#22C55E', in_progress: '#3B82F6', todo: '#A1A1AA',
               };
 
               return (
@@ -154,7 +154,6 @@ export function GanttChart({ tasks, projects }: GanttChartProps) {
           <div className="flex items-center gap-4 mt-4 pt-3 border-t text-xs text-zinc-400">
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#A1A1AA]" /> 待处理</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#3B82F6]" /> 进行中</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#F59E0B]" /> 待审核</span>
             <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-[#22C55E]" /> 已完成</span>
           </div>
         </CardContent>

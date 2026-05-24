@@ -17,7 +17,6 @@ interface BoardColumnProps {
 const COLUMN_COLORS: Record<TaskStatus, string> = {
   todo: 'border-t-zinc-400',
   in_progress: 'border-t-blue-400',
-  review: 'border-t-yellow-400',
   done: 'border-t-green-400',
 };
 

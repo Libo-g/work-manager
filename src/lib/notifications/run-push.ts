@@ -46,7 +46,7 @@ export async function runPushNotifications(type: PushType): Promise<PushResult[]
       .from('tasks')
       .select('id, title, status, priority, due_date, project_id, projects(name)')
       .eq('user_id', userId)
-      .in('status', ['in_progress', 'review'])
+      .eq('status', 'in_progress')
       .order('due_date', { ascending: true });
 
     const { data: todoTasks } = await supabase

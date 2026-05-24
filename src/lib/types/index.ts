@@ -1,4 +1,4 @@
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type RecurrenceType = 'monthly' | 'quarterly' | 'semi_annual' | 'annual';
 
@@ -68,7 +68,6 @@ export interface TaskTag {
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   todo: '待处理',
   in_progress: '进行中',
-  review: '待审核',
   done: '已完成',
 };
 
@@ -86,7 +85,7 @@ export const PRIORITY_COLORS: Record<TaskPriority, string> = {
   urgent: '#EF4444',
 };
 
-export const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
+export const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'done'];
 
 export interface UserSettings {
   id: string;
