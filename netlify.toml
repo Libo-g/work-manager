@@ -4,3 +4,9 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[functions."scheduled-push-morning"]
+  schedule = "15 0 * * *"
+
+[functions."scheduled-push-evening"]
+  schedule = "20 9 * * *"

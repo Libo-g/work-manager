@@ -87,3 +87,12 @@ export const PRIORITY_COLORS: Record<TaskPriority, string> = {
 };
 
 export const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
+
+export interface UserSettings {
+  id: string;
+  user_id: string;
+  pushplus_token: string;
+  notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
