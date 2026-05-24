@@ -87,6 +87,7 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
           projectMap={projectMap}
           compact
           droppable={false}
+          fullWidth
         />
       </div>
 

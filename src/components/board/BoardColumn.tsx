@@ -16,6 +16,7 @@ interface BoardColumnProps {
   projectMap?: Map<string, { name: string; color: string }>;
   compact?: boolean;
   droppable?: boolean;
+  fullWidth?: boolean;
 }
 
 const COLUMN_COLORS: Record<TaskStatus, string> = {
@@ -33,6 +34,7 @@ export function BoardColumn({
   projectMap,
   compact,
   droppable = true,
+  fullWidth,
 }: BoardColumnProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -117,7 +119,7 @@ export function BoardColumn({
   );
 
   return (
-    <div className={`flex flex-col ${status === 'done' ? 'flex-1 min-w-0' : 'w-72 shrink-0'}`}>
+    <div className={`flex flex-col ${fullWidth ? 'w-full' : status === 'done' ? 'flex-1 min-w-0' : 'w-72 shrink-0'}`}>
       <div className="flex items-center justify-between mb-3 px-1">
         <h3 className="text-sm font-semibold text-zinc-600">{STATUS_LABELS[status]}</h3>
         <span className="text-xs text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
