@@ -1,10 +1,11 @@
 'use client';
 
-import { type Task, type TaskStatus, STATUS_ORDER } from '@/lib/types';
+import { type Task, type TaskStatus, STATUS_ORDER, STATUS_LABELS } from '@/lib/types';
 import { BoardColumn } from './BoardColumn';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useUpdateTask } from '@/lib/hooks/useTasks';
 import { showError } from '@/components/shared/Toast';
+import { useState } from 'react';
 
 interface BoardColumnsProps {
   tasks: Task[];
@@ -14,6 +15,7 @@ interface BoardColumnsProps {
 
 export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsProps) {
   const updateTask = useUpdateTask();
+  const [mobileStatus, setMobileStatus] = useState<TaskStatus>('todo');
 
   function getColumnTasks(status: TaskStatus): Task[] {
     return tasks
@@ -55,20 +57,57 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
   }
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {STATUS_ORDER.map((status) => (
-          <BoardColumn
-            key={status}
-            status={status}
-            tasks={getColumnTasks(status)}
-            onTaskClick={onTaskClick}
-            projectMap={projectMap}
-            compact
-            droppable={status !== 'done'}
-          />
-        ))}
+    <>
+      {/* Mobile: tab bar + single column */}
+      <div className="lg:hidden space-y-3">
+        <div className="flex rounded-lg bg-zinc-100 p-1 gap-1">
+          {STATUS_ORDER.map((s) => {
+            const count = getColumnTasks(s).length;
+            const active = mobileStatus === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setMobileStatus(s)}
+                className={`flex-1 text-sm rounded-md py-2 px-3 transition-colors ${
+                  active
+                    ? 'bg-white text-zinc-900 shadow-sm font-medium'
+                    : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                {STATUS_LABELS[s]} · {count}
+              </button>
+            );
+          })}
+        </div>
+        <BoardColumn
+          status={mobileStatus}
+          tasks={getColumnTasks(mobileStatus)}
+          onTaskClick={onTaskClick}
+          projectMap={projectMap}
+          compact
+          droppable={false}
+        />
       </div>
-    </DragDropContext>
+
+      {/* Desktop: three-column drag-and-drop layout */}
+      <div className="hidden lg:block">
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {STATUS_ORDER.map((status) => (
+              <BoardColumn
+                key={status}
+                status={status}
+                tasks={getColumnTasks(status)}
+                onTaskClick={onTaskClick}
+                projectMap={projectMap}
+                compact
+                droppable={status !== 'done'}
+              />
+            ))}
+          </div>
+        </DragDropContext>
+      </div>
+    </>
   );
 }
