@@ -6,19 +6,23 @@ import { Input } from '@/components/ui/input';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { useUserSettings, useUpsertUserSettings } from '@/lib/hooks/useUserSettings';
 import { Bell, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+function getErrorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : '未知错误';
+}
 
 export function PushNotification() {
   const { data: settings } = useUserSettings();
   const upsertSettings = useUpsertUserSettings();
   const [token, setToken] = useState('');
-  const [initialized, setInitialized] = useState(false);
   const [sendingTest, setSendingTest] = useState(false);
 
-  if (settings && !initialized) {
-    setToken(settings.pushplus_token ?? '');
-    setInitialized(true);
-  }
+  useEffect(() => {
+    if (settings?.pushplus_token) {
+      setToken(settings.pushplus_token);
+    }
+  }, [settings]);
 
   const enabled = settings?.notifications_enabled ?? true;
 
@@ -27,8 +31,7 @@ export function PushNotification() {
       await upsertSettings.mutateAsync({ pushplus_token: token.trim() });
       showSuccess('Token 已保存');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '未知错误';
-      showError(`保存失败：${msg}`);
+      showError(`保存失败：${getErrorMessage(e)}`);
     }
   }
 
@@ -37,8 +40,7 @@ export function PushNotification() {
       await upsertSettings.mutateAsync({ notifications_enabled: !enabled });
       showSuccess(enabled ? '推送已关闭' : '推送已开启');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '未知错误';
-      showError(`操作失败：${msg}`);
+      showError(`操作失败：${getErrorMessage(e)}`);
     }
   }
 

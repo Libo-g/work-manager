@@ -7,6 +7,8 @@ import {
   getDailySummary,
   getDoneTasks,
   getInProgressInWeek,
+  getInProgressTasks,
+  getTodoTasks,
 } from './queries';
 import { composeMorningReport, composeEveningReport } from './composer';
 import type { PushResult, PushType } from './types';
@@ -36,32 +38,20 @@ export async function runPushNotifications(type: PushType): Promise<PushResult[]
   }
 
   if (type === 'evening') {
-    const [summary, overdue, doneTasks] = await Promise.all([
+    const [summary, overdue, doneTasks, inProgressTasks, todoTasks] = await Promise.all([
       getDailySummary(supabase, userId),
       getOverdueTasks(supabase, userId),
       getDoneTasks(supabase, userId),
+      getInProgressTasks(supabase, userId),
+      getTodoTasks(supabase, userId),
     ]);
-
-    const { data: inProgressTasks } = await supabase
-      .from('tasks')
-      .select('id, title, status, priority, due_date, project_id, projects(name)')
-      .eq('user_id', userId)
-      .eq('status', 'in_progress')
-      .order('due_date', { ascending: true });
-
-    const { data: todoTasks } = await supabase
-      .from('tasks')
-      .select('id, title, status, priority, due_date, project_id, projects(name)')
-      .eq('user_id', userId)
-      .eq('status', 'todo')
-      .order('due_date', { ascending: true });
 
     const { title, content } = composeEveningReport(
       summary,
       overdue,
       doneTasks,
-      (inProgressTasks ?? []) as unknown as import('./types').TaskWithProject[],
-      (todoTasks ?? []) as unknown as import('./types').TaskWithProject[]
+      inProgressTasks,
+      todoTasks
     );
 
     const result = await sendPushPlus({ token, title, content });

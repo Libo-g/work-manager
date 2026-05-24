@@ -1,5 +1,10 @@
 import type { DailySummary, TaskWithProject } from './types';
-import { RECURRENCE_REMINDER_DAYS, RECURRENCE_LABELS, PRIORITY_LABELS, type RecurrenceType } from '@/lib/types';
+import { RECURRENCE_LABELS, type RecurrenceType } from '@/lib/types';
+
+function todayString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -84,8 +89,7 @@ export function composeMorningReport(
   upcoming: TaskWithProject[],
   inProgressWeek: TaskWithProject[]
 ): { title: string; content: string } {
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const dateStr = todayString();
   const title = `【今日任务提醒】${dateStr}`;
 
   const lines: string[] = [];
@@ -150,8 +154,7 @@ export function composeEveningReport(
   inProgressTasks: TaskWithProject[],
   todoTasks: TaskWithProject[]
 ): { title: string; content: string } {
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const dateStr = todayString();
   const title = `【今日工作总结】${dateStr}`;
 
   const lines: string[] = [];

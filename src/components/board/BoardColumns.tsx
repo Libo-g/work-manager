@@ -5,7 +5,7 @@ import { BoardColumn } from './BoardColumn';
 import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
 import { useUpdateTask } from '@/lib/hooks/useTasks';
 import { showError } from '@/components/shared/Toast';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface BoardColumnsProps {
   tasks: Task[];
@@ -17,11 +17,16 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
   const updateTask = useUpdateTask();
   const [mobileStatus, setMobileStatus] = useState<TaskStatus>('todo');
 
-  function getColumnTasks(status: TaskStatus): Task[] {
-    return tasks
-      .filter((t) => t.status === status)
-      .sort((a, b) => a.position - b.position);
-  }
+  const columns = useMemo(() => {
+    const map: Record<TaskStatus, Task[]> = { todo: [], in_progress: [], done: [] };
+    for (const task of tasks) {
+      map[task.status]?.push(task);
+    }
+    for (const col of Object.values(map)) {
+      col.sort((a, b) => a.position - b.position);
+    }
+    return map;
+  }, [tasks]);
 
   async function handleDragEnd(result: DropResult) {
     const { draggableId, source, destination } = result;
@@ -30,7 +35,7 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
     if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const newStatus = destination.droppableId as TaskStatus;
-    const columnTasks = getColumnTasks(newStatus);
+    const columnTasks = columns[newStatus];
 
     let newPosition: number;
     if (columnTasks.length === 0) {
@@ -58,11 +63,10 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
 
   return (
     <>
-      {/* Mobile: tab bar + single column */}
       <div className="lg:hidden space-y-3">
         <div className="flex rounded-lg bg-zinc-100 p-1 gap-1">
           {STATUS_ORDER.map((s) => {
-            const count = getColumnTasks(s).length;
+            const count = columns[s].length;
             const active = mobileStatus === s;
             return (
               <button
@@ -82,7 +86,7 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
         </div>
         <BoardColumn
           status={mobileStatus}
-          tasks={getColumnTasks(mobileStatus)}
+          tasks={columns[mobileStatus]}
           onTaskClick={onTaskClick}
           projectMap={projectMap}
           compact
@@ -91,7 +95,6 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
         />
       </div>
 
-      {/* Desktop: three-column drag-and-drop layout */}
       <div className="hidden lg:block">
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="flex gap-4 overflow-x-auto pb-4">
@@ -99,7 +102,7 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
               <BoardColumn
                 key={status}
                 status={status}
-                tasks={getColumnTasks(status)}
+                tasks={columns[status]}
                 onTaskClick={onTaskClick}
                 projectMap={projectMap}
                 compact

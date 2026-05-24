@@ -147,3 +147,33 @@ export async function getDoneTasks(
   if (error) return [];
   return (data ?? []) as unknown as TaskWithProject[];
 }
+
+export async function getInProgressTasks(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TaskWithProject[]> {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('id, title, status, priority, due_date, project_id, projects(name)')
+    .eq('user_id', userId)
+    .eq('status', 'in_progress')
+    .order('due_date', { ascending: true });
+
+  if (error) return [];
+  return (data ?? []) as unknown as TaskWithProject[];
+}
+
+export async function getTodoTasks(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TaskWithProject[]> {
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('id, title, status, priority, due_date, project_id, projects(name)')
+    .eq('user_id', userId)
+    .eq('status', 'todo')
+    .order('due_date', { ascending: true });
+
+  if (error) return [];
+  return (data ?? []) as unknown as TaskWithProject[];
+}

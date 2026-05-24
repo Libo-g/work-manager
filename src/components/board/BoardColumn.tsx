@@ -42,13 +42,15 @@ export function BoardColumn({
   const displayTasks = isCompact ? tasks.slice(0, COMPACT_LIMIT) : tasks;
 
   function renderTask(task: Task, index: number) {
+    const project = projectMap?.get(task.project_id);
+
     const card = (
       <TaskCard
         task={task}
         isDragging={false}
         onClick={() => onTaskClick(task)}
-        projectName={projectMap?.get(task.project_id)?.name}
-        projectColor={projectMap?.get(task.project_id)?.color}
+        projectName={project?.name}
+        projectColor={project?.color}
       />
     );
 
@@ -64,29 +66,34 @@ export function BoardColumn({
             {...provided.draggableProps}
             {...provided.dragHandleProps}
           >
-            <TaskCard
-              task={task}
-              isDragging={snapshot.isDragging}
-              onClick={() => onTaskClick(task)}
-              projectName={projectMap?.get(task.project_id)?.name}
-              projectColor={projectMap?.get(task.project_id)?.color}
-            />
+            {snapshot.isDragging ? (
+              <TaskCard
+                task={task}
+                isDragging
+                onClick={() => onTaskClick(task)}
+                projectName={project?.name}
+                projectColor={project?.color}
+              />
+            ) : (
+              card
+            )}
           </div>
         )}
       </Draggable>
     );
   }
 
+  const isDone = status === 'done';
+  const bodyClass = [
+    'flex-1 rounded-lg border-t-2',
+    COLUMN_COLORS[status],
+    'bg-zinc-100/50 p-2 min-h-[200px] transition-colors',
+    isDone ? 'grid grid-cols-2 gap-2 content-start' : 'space-y-2',
+    isDone && compact ? 'max-h-[60vh] overflow-y-auto' : '',
+  ].join(' ');
+
   const content = (
-    <div
-      className={`flex-1 rounded-lg border-t-2 ${COLUMN_COLORS[status]} bg-zinc-100/50 p-2 min-h-[200px] transition-colors ${
-        status === 'done'
-          ? compact
-            ? 'grid grid-cols-2 gap-2 content-start max-h-[60vh] overflow-y-auto'
-            : 'grid grid-cols-2 gap-2 content-start'
-          : 'space-y-2'
-      }`}
-    >
+    <div className={bodyClass}>
       {tasks.length === 0 && (
         <EmptyState
           icon={Inbox}
@@ -119,7 +126,7 @@ export function BoardColumn({
   );
 
   return (
-    <div className={`flex flex-col ${fullWidth ? 'w-full' : status === 'done' ? 'flex-1 min-w-0' : 'w-72 shrink-0'}`}>
+    <div className={`flex flex-col ${fullWidth ? 'w-full' : isDone ? 'flex-1 min-w-0' : 'w-72 shrink-0'}`}>
       <div className="flex items-center justify-between mb-3 px-1">
         <h3 className="text-sm font-semibold text-zinc-600">{STATUS_LABELS[status]}</h3>
         <span className="text-xs text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
