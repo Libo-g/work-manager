@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "WebFetch(domain:h5.pushplus.plus)",
-      "Bash(./node_modules/.bin/tsc --noEmit)"
-    ]
-  }
-}
