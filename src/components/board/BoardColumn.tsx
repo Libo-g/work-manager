@@ -77,8 +77,12 @@ export function BoardColumn({
 
   const content = (
     <div
-      className={`flex-1 rounded-lg border-t-2 ${COLUMN_COLORS[status]} bg-zinc-100/50 p-2 space-y-2 min-h-[200px] transition-colors ${
-        status === 'done' && compact ? 'max-h-[60vh] overflow-y-auto' : ''
+      className={`flex-1 rounded-lg border-t-2 ${COLUMN_COLORS[status]} bg-zinc-100/50 p-2 min-h-[200px] transition-colors ${
+        status === 'done'
+          ? compact
+            ? 'grid grid-cols-2 gap-2 content-start max-h-[60vh] overflow-y-auto'
+            : 'grid grid-cols-2 gap-2 content-start'
+          : 'space-y-2'
       }`}
     >
       {tasks.length === 0 && (
@@ -93,7 +97,7 @@ export function BoardColumn({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full text-xs text-zinc-400"
+          className="col-span-2 text-xs text-zinc-400"
           onClick={() => setExpanded(true)}
         >
           展开全部 {tasks.length} 个已完成任务
@@ -103,7 +107,7 @@ export function BoardColumn({
         <Button
           variant="ghost"
           size="sm"
-          className="w-full text-xs text-zinc-400"
+          className="col-span-2 text-xs text-zinc-400"
           onClick={() => setExpanded(false)}
         >
           收起，仅显示最近 {COMPACT_LIMIT} 个
@@ -113,7 +117,7 @@ export function BoardColumn({
   );
 
   return (
-    <div className={`flex flex-col ${status === 'done' ? 'w-72 shrink-0' : 'flex-1 min-w-0'}`}>
+    <div className={`flex flex-col ${status === 'done' ? 'flex-1 min-w-0' : 'w-72 shrink-0'}`}>
       <div className="flex items-center justify-between mb-3 px-1">
         <h3 className="text-sm font-semibold text-zinc-600">{STATUS_LABELS[status]}</h3>
         <span className="text-xs text-zinc-400 bg-zinc-100 rounded-full px-2 py-0.5">
