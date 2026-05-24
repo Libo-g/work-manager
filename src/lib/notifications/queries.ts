@@ -2,17 +2,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DailySummary, UserSettingsRow, TaskWithProject } from './types';
 import { RECURRENCE_REMINDER_DAYS, type RecurrenceType } from '@/lib/types';
 
-export async function getUserSettings(
+export async function getActiveUsers(
   supabase: SupabaseClient
-): Promise<UserSettingsRow | null> {
+): Promise<UserSettingsRow[]> {
   const { data, error } = await supabase
     .from('user_settings')
-    .select('user_id, pushplus_token, notifications_enabled')
-    .limit(1)
-    .maybeSingle();
+    .select('user_id, pushplus_token, notifications_enabled');
 
-  if (error || !data) return null;
-  return data as UserSettingsRow;
+  if (error || !data) return [];
+  return (data as UserSettingsRow[]).filter(
+    (row) => row.notifications_enabled && row.pushplus_token
+  );
 }
 
 export async function getOverdueTasks(

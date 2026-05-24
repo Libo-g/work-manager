@@ -1,7 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service';
 import { sendPushPlus } from './pushplus';
 import {
-  getUserSettings,
+  getActiveUsers,
   getOverdueTasks,
   getUpcomingTasks,
   getDailySummary,
@@ -11,52 +11,59 @@ import {
   getTodoTasks,
 } from './queries';
 import { composeMorningReport, composeEveningReport } from './composer';
-import type { PushResult, PushType } from './types';
+import type { PushResult, PushType, UserSettingsRow } from './types';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+async function sendMorningPush(
+  supabase: SupabaseClient,
+  user: UserSettingsRow
+): Promise<PushResult> {
+  const [overdue, upcoming, summary, inProgressWeek] = await Promise.all([
+    getOverdueTasks(supabase, user.user_id),
+    getUpcomingTasks(supabase, user.user_id),
+    getDailySummary(supabase, user.user_id),
+    getInProgressInWeek(supabase, user.user_id),
+  ]);
+
+  const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
+  return sendPushPlus({ token: user.pushplus_token, title, content });
+}
+
+async function sendEveningPush(
+  supabase: SupabaseClient,
+  user: UserSettingsRow
+): Promise<PushResult> {
+  const [summary, overdue, doneTasks, inProgressTasks, todoTasks] = await Promise.all([
+    getDailySummary(supabase, user.user_id),
+    getOverdueTasks(supabase, user.user_id),
+    getDoneTasks(supabase, user.user_id),
+    getInProgressTasks(supabase, user.user_id),
+    getTodoTasks(supabase, user.user_id),
+  ]);
+
+  const { title, content } = composeEveningReport(
+    summary, overdue, doneTasks, inProgressTasks, todoTasks
+  );
+  return sendPushPlus({ token: user.pushplus_token, title, content });
+}
 
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {
   const supabase = createServiceClient();
 
-  const settings = await getUserSettings(supabase);
-  if (!settings?.pushplus_token || !settings.notifications_enabled) {
-    return [{ success: false, message: '推送未启用或未配置 token' }];
+  const users = await getActiveUsers(supabase);
+  if (users.length === 0) {
+    return [{ success: false, message: '无活跃推送用户' }];
   }
 
-  const userId = settings.user_id;
-  const token = settings.pushplus_token;
+  const results: PushResult[] = [];
 
-  if (type === 'morning') {
-    const [overdue, upcoming, summary, inProgressWeek] = await Promise.all([
-      getOverdueTasks(supabase, userId),
-      getUpcomingTasks(supabase, userId),
-      getDailySummary(supabase, userId),
-      getInProgressInWeek(supabase, userId),
-    ]);
-
-    const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
-    const result = await sendPushPlus({ token, title, content });
-    return [result];
+  for (const user of users) {
+    const result =
+      type === 'morning'
+        ? await sendMorningPush(supabase, user)
+        : await sendEveningPush(supabase, user);
+    results.push(result);
   }
 
-  if (type === 'evening') {
-    const [summary, overdue, doneTasks, inProgressTasks, todoTasks] = await Promise.all([
-      getDailySummary(supabase, userId),
-      getOverdueTasks(supabase, userId),
-      getDoneTasks(supabase, userId),
-      getInProgressTasks(supabase, userId),
-      getTodoTasks(supabase, userId),
-    ]);
-
-    const { title, content } = composeEveningReport(
-      summary,
-      overdue,
-      doneTasks,
-      inProgressTasks,
-      todoTasks
-    );
-
-    const result = await sendPushPlus({ token, title, content });
-    return [result];
-  }
-
-  return [{ success: false, message: `未知推送类型: ${type}` }];
+  return results;
 }
