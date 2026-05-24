@@ -64,6 +64,8 @@ export function BoardColumns({ tasks, onTaskClick, projectMap }: BoardColumnsPro
             tasks={getColumnTasks(status)}
             onTaskClick={onTaskClick}
             projectMap={projectMap}
+            compact
+            droppable={status !== 'done'}
           />
         ))}
       </div>
