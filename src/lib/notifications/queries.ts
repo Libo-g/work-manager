@@ -109,6 +109,29 @@ export async function getDailySummary(
   return { total, done, inProgress, todo, overdue };
 }
 
+export async function getInProgressInWeek(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<TaskWithProject[]> {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const sevenDaysLater = new Date();
+  sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+  const sevenDaysStr = sevenDaysLater.toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('id, title, status, priority, due_date, project_id, projects(name)')
+    .eq('user_id', userId)
+    .in('status', ['in_progress', 'review'])
+    .not('due_date', 'is', null)
+    .gte('due_date', todayStr)
+    .lte('due_date', sevenDaysStr)
+    .order('due_date', { ascending: true });
+
+  if (error) return [];
+  return (data ?? []) as unknown as TaskWithProject[];
+}
+
 export async function getDoneTasks(
   supabase: SupabaseClient,
   userId: string

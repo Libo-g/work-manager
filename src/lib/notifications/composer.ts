@@ -81,7 +81,8 @@ function composeNarrative(
 export function composeMorningReport(
   summary: DailySummary,
   overdue: TaskWithProject[],
-  upcoming: TaskWithProject[]
+  upcoming: TaskWithProject[],
+  inProgressWeek: TaskWithProject[]
 ): { title: string; content: string } {
   const today = new Date();
   const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -100,6 +101,18 @@ export function composeMorningReport(
     for (const task of overdue) {
       const label = task.due_date ? ` - 截止 ${formatDate(task.due_date)}` : '';
       lines.push(taskLine(task) + label);
+    }
+    lines.push('');
+  }
+
+  if (inProgressWeek.length > 0) {
+    lines.push(`🔥 进行中·7日内到期 (${inProgressWeek.length})`);
+    for (const task of inProgressWeek) {
+      if (task.due_date) {
+        const remaining = daysUntil(task.due_date);
+        const remainingText = remaining <= 0 ? '今日到期' : `还剩 ${remaining} 天`;
+        lines.push(`${taskLine(task)} - 截止 ${formatDate(task.due_date)} (${remainingText})`);
+      }
     }
     lines.push('');
   }

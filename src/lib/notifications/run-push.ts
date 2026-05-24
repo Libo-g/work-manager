@@ -6,6 +6,7 @@ import {
   getUpcomingTasks,
   getDailySummary,
   getDoneTasks,
+  getInProgressInWeek,
 } from './queries';
 import { composeMorningReport, composeEveningReport } from './composer';
 import type { PushResult, PushType } from './types';
@@ -22,13 +23,14 @@ export async function runPushNotifications(type: PushType): Promise<PushResult[]
   const token = settings.pushplus_token;
 
   if (type === 'morning') {
-    const [overdue, upcoming, summary] = await Promise.all([
+    const [overdue, upcoming, summary, inProgressWeek] = await Promise.all([
       getOverdueTasks(supabase, userId),
       getUpcomingTasks(supabase, userId),
       getDailySummary(supabase, userId),
+      getInProgressInWeek(supabase, userId),
     ]);
 
-    const { title, content } = composeMorningReport(summary, overdue, upcoming);
+    const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
     const result = await sendPushPlus({ token, title, content });
     return [result];
   }
