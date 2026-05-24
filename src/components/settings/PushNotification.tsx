@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { useUserSettings, useUpsertUserSettings } from '@/lib/hooks/useUserSettings';
-import { Bell, Send } from 'lucide-react';
+import { Bell, Send, Bot } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 function getErrorMessage(e: unknown): string {
@@ -16,11 +16,15 @@ export function PushNotification() {
   const { data: settings } = useUserSettings();
   const upsertSettings = useUpsertUserSettings();
   const [token, setToken] = useState('');
+  const [ilinkToken, setIlinkToken] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
     if (settings?.pushplus_token) {
       setToken(settings.pushplus_token);
+    }
+    if (settings?.ilink_token) {
+      setIlinkToken(settings.ilink_token);
     }
   }, [settings]);
 
@@ -30,6 +34,15 @@ export function PushNotification() {
     try {
       await upsertSettings.mutateAsync({ pushplus_token: token.trim() });
       showSuccess('Token 已保存');
+    } catch (e: unknown) {
+      showError(`保存失败：${getErrorMessage(e)}`);
+    }
+  }
+
+  async function handleSaveIlinkToken() {
+    try {
+      await upsertSettings.mutateAsync({ ilink_token: ilinkToken.trim() });
+      showSuccess('iLink Token 已保存');
     } catch (e: unknown) {
       showError(`保存失败：${getErrorMessage(e)}`);
     }
@@ -99,6 +112,29 @@ export function PushNotification() {
             <Button
               variant="outline"
               onClick={handleSaveToken}
+              disabled={upsertSettings.isPending}
+            >
+              保存
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-zinc-700 mb-1 block">
+            iLink Bot Token
+          </label>
+          <p className="text-xs text-zinc-400 mb-2">
+            从 ClawBot 插件获取 iLink bot token，用于接收微信消息并新建任务
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="输入 iLink bot token"
+              value={ilinkToken}
+              onChange={(e) => setIlinkToken(e.target.value)}
+            />
+            <Button
+              variant="outline"
+              onClick={handleSaveIlinkToken}
               disabled={upsertSettings.isPending}
             >
               保存

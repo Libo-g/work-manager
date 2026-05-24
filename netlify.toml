@@ -10,3 +10,6 @@
 
 [functions."scheduled-push-evening"]
   schedule = "20 9 * * *"
+
+[functions."scheduled-bot-poll"]
+  schedule = "*/1 * * * *"
