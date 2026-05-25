@@ -1,0 +1,32 @@
+name: Scheduled Tasks
+
+on:
+  schedule:
+    # 8:15 北京 (00:15 UTC)
+    - cron: '15 0 * * *'
+    # 17:20 北京 (09:20 UTC)
+    - cron: '20 9 * * *'
+    # Bot 轮询：每分钟
+    - cron: '* * * * *'
+
+jobs:
+  morning-push:
+    if: github.event.schedule == '15 0 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf "https://work-manager-vercel.vercel.app/api/cron/push?type=morning"
+
+  evening-push:
+    if: github.event.schedule == '20 9 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf "https://work-manager-vercel.vercel.app/api/cron/push?type=evening"
+
+  bot-poll:
+    if: github.event.schedule == '* * * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sf "https://work-manager-vercel.vercel.app/api/bot/poll"
