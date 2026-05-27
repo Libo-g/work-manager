@@ -10,7 +10,7 @@ import {
   getInProgressTasks,
   getTodoTasks,
 } from './queries';
-import { composeMorningReport, composeEveningReport } from './composer';
+import { composeMorningReport, composeAfternoonReport, composeEveningReport } from './composer';
 import type { PushResult, PushType, UserSettingsRow } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -47,6 +47,21 @@ async function sendEveningPush(
   return sendPushPlus(user.pushplus_token, title, content);
 }
 
+async function sendAfternoonPush(
+  supabase: SupabaseClient,
+  user: UserSettingsRow
+): Promise<PushResult> {
+  const [summary, overdue, inProgressTasks, todoTasks] = await Promise.all([
+    getDailySummary(supabase, user.user_id),
+    getOverdueTasks(supabase, user.user_id),
+    getInProgressTasks(supabase, user.user_id),
+    getTodoTasks(supabase, user.user_id),
+  ]);
+
+  const { title, content } = composeAfternoonReport(summary, overdue, inProgressTasks, todoTasks);
+  return sendPushPlus(user.pushplus_token, title, content);
+}
+
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {
   const supabase = createServiceClient();
 
@@ -61,7 +76,9 @@ export async function runPushNotifications(type: PushType): Promise<PushResult[]
     const result =
       type === 'morning'
         ? await sendMorningPush(supabase, user)
-        : await sendEveningPush(supabase, user);
+        : type === 'afternoon'
+          ? await sendAfternoonPush(supabase, user)
+          : await sendEveningPush(supabase, user);
     results.push(result);
   }
 

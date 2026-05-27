@@ -40,6 +40,23 @@ const EVENING_GREETINGS = [
   '一天的工作结束了，来做个总结 📋',
 ];
 
+const AFTERNOON_GREETINGS = [
+  '下午好！来看看今天任务推进得怎么样了 📋',
+  '午后来个进度检查，看看还有哪些要跟进的 🔍',
+  '下午过半，来盘点一下任务进度吧 ☕',
+];
+
+const AFTERNOON_CLOSINGS = [
+  '还有半天，抓紧时间冲刺吧 💪',
+  '该补的补，该赶的赶，加油 ✨',
+];
+
+const EVENING_GREETINGS = [
+  '下班啦！来看看今天的工作成果 🎉',
+  '收工！回顾一下今天的工作吧 🏠',
+  '一天的工作结束了，来做个总结 📋',
+];
+
 const EVENING_CLOSINGS = [
   '辛苦啦，今天的班就上到这，明天继续加油 💼',
   '今天辛苦了，好好休息，明天见 🌙',
@@ -48,6 +65,44 @@ const EVENING_CLOSINGS = [
 
 function pick(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export function composeAfternoonReport(
+  summary: DailySummary,
+  overdue: TaskWithProject[],
+  inProgressTasks: TaskWithProject[],
+  todoTasks: TaskWithProject[]
+): { title: string; content: string } {
+  const lines: string[] = [];
+  const dateStr = todayString();
+
+  lines.push(pick(AFTERNOON_GREETINGS));
+
+  if (overdue.length > 0) {
+    lines.push(`\n\n⚠️ 逾期 (${overdue.length})`);
+    overdue.forEach((t) => {
+      const label = t.due_date ? ` - 截止 ${formatDate(t.due_date)}` : '';
+      lines.push(taskLine(t) + label);
+    });
+  }
+
+  if (inProgressTasks.length > 0) {
+    lines.push(`\n\n📝 进行中 (${inProgressTasks.length})`);
+    inProgressTasks.slice(0, 5).forEach((t) => {
+      const mark = t.due_date && new Date(t.due_date) < new Date() ? ' ⚠️' : '';
+      lines.push(taskLine(t) + mark);
+    });
+  }
+
+  if (todoTasks.length > 0) {
+    lines.push(`\n\n⏳ 仍未开始 (${todoTasks.length})`);
+    todoTasks.slice(0, 5).forEach((t) => lines.push(taskLine(t)));
+  }
+
+  lines.push(`\n\n📊 共${summary.total}项 | 已完成${summary.done} | 进行中${summary.inProgress} | 待处理${summary.todo}`);
+  lines.push(`\n${pick(AFTERNOON_CLOSINGS)}`);
+
+  return { title: `【下午进度】${dateStr}`, content: lines.join('\n') };
 }
 
 export function composeMorningReport(
@@ -63,7 +118,7 @@ export function composeMorningReport(
 
   // Overdue first
   if (overdue.length > 0) {
-    lines.push(`\n⚠️ 逾期 (${overdue.length})`);
+    lines.push(`\n\n⚠️ 逾期 (${overdue.length})`);
     overdue.forEach((t) => {
       const label = t.due_date ? ` - 截止 ${formatDate(t.due_date)}` : '';
       lines.push(taskLine(t) + label);
@@ -73,7 +128,7 @@ export function composeMorningReport(
   // Due this week
   const urgent = [...inProgressWeek, ...upcoming].slice(0, 6);
   if (urgent.length > 0) {
-    lines.push(`\n📌 本周内到期`);
+    lines.push(`\n\n📌 本周内到期`);
     urgent.forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
@@ -87,11 +142,11 @@ export function composeMorningReport(
   }
 
   if (overdue.length === 0 && urgent.length === 0) {
-    lines.push('\n✨ 暂无逾期或紧急任务，继续保持！');
+    lines.push('\n\n✨ 暂无逾期或紧急任务，继续保持！');
   }
 
   // Stats
-  lines.push(`\n📊 共${summary.total}项 | 进行中${summary.inProgress} | 待处理${summary.todo}`);
+  lines.push(`\n\n📊 共${summary.total}项 | 进行中${summary.inProgress} | 待处理${summary.todo}`);
   lines.push(`\n${pick(MORNING_CLOSINGS)}`);
 
   return { title: `【任务提醒】${dateStr}`, content: lines.join('\n') };
@@ -110,12 +165,12 @@ export function composeEveningReport(
   lines.push(pick(EVENING_GREETINGS));
 
   // Done
-  lines.push(`\n✅ 已完成 ${summary.done} 项`);
+  lines.push(`\n\n✅ 已完成 ${summary.done} 项`);
   doneTasks.slice(0, 5).forEach((t) => lines.push(taskLine(t)));
 
   // In progress
   if (inProgressTasks.length > 0) {
-    lines.push(`\n📝 进行中 (${inProgressTasks.length})`);
+    lines.push(`\n\n📝 进行中 (${inProgressTasks.length})`);
     inProgressTasks.slice(0, 5).forEach((t) => {
       const mark = t.due_date && new Date(t.due_date) < new Date() ? ' ⚠️' : '';
       lines.push(taskLine(t) + mark);
@@ -124,13 +179,13 @@ export function composeEveningReport(
 
   // Overdue
   if (overdue.length > 0) {
-    lines.push(`\n⚠️ 逾期 (${overdue.length})`);
+    lines.push(`\n\n⚠️ 逾期 (${overdue.length})`);
     overdue.slice(0, 3).forEach((t) => lines.push(taskLine(t)));
   }
 
   // Stats
   const pct = summary.total > 0 ? Math.round((summary.done / summary.total) * 100) : 0;
-  lines.push(`\n📊 完成率 ${pct}%  | 待处理${summary.todo}`);
+  lines.push(`\n\n📊 完成率 ${pct}%  | 待处理${summary.todo}`);
   lines.push(`\n${pick(EVENING_CLOSINGS)}`);
 
   return { title: `【工作总结】${dateStr}`, content: lines.join('\n') };

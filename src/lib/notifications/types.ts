@@ -11,7 +11,7 @@ export interface PushResult {
   message: string;
 }
 
-export type PushType = 'morning' | 'evening';
+export type PushType = 'morning' | 'afternoon' | 'evening';
 
 export interface TaskWithProject {
   id: string;
