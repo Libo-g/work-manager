@@ -1,6 +1,6 @@
 import type { PushNotificationPayload, PushResult } from './types';
 
-const PUSHPLUS_URL = 'http://www.pushplus.plus/send';
+const PUSHPLUS_URL = 'https://www.pushplus.plus/send';
 
 export async function sendPushPlus(payload: PushNotificationPayload): Promise<PushResult> {
   try {
