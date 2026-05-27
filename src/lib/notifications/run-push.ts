@@ -26,7 +26,7 @@ async function sendMorningPush(
   ]);
 
   const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
-  return sendPushPlus(user.pushplus_token, title, `${title}\n\n${content}`);
+  return sendPushPlus(user.pushplus_token, title, content);
 }
 
 async function sendEveningPush(
@@ -44,7 +44,7 @@ async function sendEveningPush(
   const { title, content } = composeEveningReport(
     summary, overdue, doneTasks, inProgressTasks, todoTasks
   );
-  return sendPushPlus(user.pushplus_token, title, `${title}\n\n${content}`);
+  return sendPushPlus(user.pushplus_token, title, content);
 }
 
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {
