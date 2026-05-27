@@ -1,5 +1,5 @@
 import type { DailySummary, TaskWithProject } from './types';
-import { RECURRENCE_LABELS, type RecurrenceType } from '@/lib/types';
+import type { RecurrenceType } from '@/lib/types';
 
 function todayString(): string {
   const d = new Date();
@@ -108,7 +108,7 @@ export function composeAfternoonReport(
 export function composeMorningReport(
   summary: DailySummary,
   overdue: TaskWithProject[],
-  upcoming: TaskWithProject[],
+  _upcoming: TaskWithProject[],
   inProgressWeek: TaskWithProject[]
 ): { title: string; content: string } {
   const lines: string[] = [];
@@ -125,12 +125,9 @@ export function composeMorningReport(
     });
   }
 
-  // Due this week — use upcoming, excluding those already shown in inProgressWeek
-  const inProgressIds = new Set(inProgressWeek.map((t) => t.id));
-  const upcomingOnly = upcoming.filter((t) => !inProgressIds.has(t.id));
-
+  // In progress due this week
   if (inProgressWeek.length > 0) {
-    lines.push(`\n\n📌 进行中·本周到期 (${inProgressWeek.length})`);
+    lines.push(`\n\n📌 进行中 (${inProgressWeek.length})`);
     inProgressWeek.slice(0, 5).forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
@@ -140,22 +137,7 @@ export function composeMorningReport(
     });
   }
 
-  if (upcomingOnly.length > 0) {
-    lines.push(`\n\n⏰ 即将到期 (${upcomingOnly.length})`);
-    upcomingOnly.slice(0, 5).forEach((t) => {
-      const dateField = t.next_due_date ?? t.due_date;
-      if (dateField) {
-        const d = daysUntil(dateField);
-        const typeLabel = t.recurrence_type
-          ? ` [${RECURRENCE_LABELS[t.recurrence_type as RecurrenceType]}]`
-          : '';
-        const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
-        lines.push(`${taskLine(t)}${typeLabel} - ${label}`);
-      }
-    });
-  }
-
-  if (overdue.length === 0 && inProgressWeek.length === 0 && upcomingOnly.length === 0) {
+  if (overdue.length === 0 && inProgressWeek.length === 0) {
     lines.push('\n\n✨ 暂无逾期或紧急任务，继续保持！');
   }
 
