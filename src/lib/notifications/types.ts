@@ -1,9 +1,3 @@
-export interface PushNotificationPayload {
-  token: string;
-  title: string;
-  content: string;
-}
-
 export interface DailySummary {
   total: number;
   done: number;
@@ -32,6 +26,8 @@ export interface TaskWithProject {
 
 export interface UserSettingsRow {
   user_id: string;
-  pushplus_token: string;
+  bot_user_id: string;
+  bot_context_token: string;
+  ilink_token: string;
   notifications_enabled: boolean;
 }

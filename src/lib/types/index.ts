@@ -92,6 +92,8 @@ export interface UserSettings {
   user_id: string;
   pushplus_token: string;
   ilink_token: string;
+  bot_user_id: string;
+  bot_context_token: string;
   notifications_enabled: boolean;
   bot_cursor: string;
   created_at: string;

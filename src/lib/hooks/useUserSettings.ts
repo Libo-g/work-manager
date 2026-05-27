@@ -30,7 +30,6 @@ export function useUpsertUserSettings() {
 
   return useMutation({
     mutationFn: async (input: {
-      pushplus_token?: string;
       ilink_token?: string;
       notifications_enabled?: boolean;
     }) => {

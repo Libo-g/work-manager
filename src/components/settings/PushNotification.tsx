@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { showSuccess, showError } from '@/components/shared/Toast';
 import { useUserSettings, useUpsertUserSettings } from '@/lib/hooks/useUserSettings';
-import { Bell, Send, Bot } from 'lucide-react';
+import { Bell, Send } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 function getErrorMessage(e: unknown): string {
@@ -15,29 +15,16 @@ function getErrorMessage(e: unknown): string {
 export function PushNotification() {
   const { data: settings } = useUserSettings();
   const upsertSettings = useUpsertUserSettings();
-  const [token, setToken] = useState('');
   const [ilinkToken, setIlinkToken] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
-    if (settings?.pushplus_token) {
-      setToken(settings.pushplus_token);
-    }
     if (settings?.ilink_token) {
       setIlinkToken(settings.ilink_token);
     }
   }, [settings]);
 
   const enabled = settings?.notifications_enabled ?? true;
-
-  async function handleSaveToken() {
-    try {
-      await upsertSettings.mutateAsync({ pushplus_token: token.trim() });
-      showSuccess('Token 已保存');
-    } catch (e: unknown) {
-      showError(`保存失败：${getErrorMessage(e)}`);
-    }
-  }
 
   async function handleSaveIlinkToken() {
     try {
@@ -58,8 +45,8 @@ export function PushNotification() {
   }
 
   async function handleTestPush() {
-    if (!token.trim()) {
-      showError('请先填写 pushplus token');
+    if (!ilinkToken.trim()) {
+      showError('请先填写 iLink Bot Token');
       return;
     }
     setSendingTest(true);
@@ -89,42 +76,10 @@ export function PushNotification() {
       <CardContent className="space-y-4">
         <div>
           <label className="text-sm font-medium text-zinc-700 mb-1 block">
-            PushPlus Token
-          </label>
-          <p className="text-xs text-zinc-400 mb-2">
-            前往
-            <a
-              href="http://www.pushplus.plus"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 mx-1 hover:underline"
-            >
-              pushplus.plus
-            </a>
-            注册并绑定微信 ClawBot 后获取 token
-          </p>
-          <div className="flex gap-2">
-            <Input
-              placeholder="输入 pushplus token"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-            />
-            <Button
-              variant="outline"
-              onClick={handleSaveToken}
-              disabled={upsertSettings.isPending}
-            >
-              保存
-            </Button>
-          </div>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium text-zinc-700 mb-1 block">
             iLink Bot Token
           </label>
           <p className="text-xs text-zinc-400 mb-2">
-            从 ClawBot 插件获取 iLink bot token，用于接收微信消息并新建任务
+            在终端运行 node scripts/get-ilink-token.mjs 获取 token，用于微信收发消息
           </p>
           <div className="flex gap-2">
             <Input
@@ -140,6 +95,9 @@ export function PushNotification() {
               保存
             </Button>
           </div>
+          {settings?.bot_user_id && (
+            <p className="text-xs text-green-600 mt-1">已绑定微信用户，可正常收发消息</p>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-md border px-3 py-3">
@@ -185,7 +143,7 @@ export function PushNotification() {
         </div>
 
         <p className="text-xs text-zinc-400">
-          ClawBot 限制：每 10 条消息或每 24 小时需在微信中主动给 Bot 发一条消息激活
+          iLink Bot 统一处理微信消息收发和定时推送。每 24 小时需在微信中主动发一条消息激活
         </p>
       </CardContent>
     </Card>

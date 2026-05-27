@@ -30,12 +30,18 @@ export async function GET() {
 
   const { messages, newCursor } = await pollUpdates(ilinkToken, cursor);
 
-  // Save cursor back
-  if (newCursor !== cursor && row?.id) {
-    await supabase
-      .from('user_settings')
-      .update({ bot_cursor: newCursor })
-      .eq('id', row.id);
+  // Save cursor and bot user info back
+  if (row?.id) {
+    const updates: Record<string, string> = {};
+    if (newCursor !== cursor) updates.bot_cursor = newCursor;
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      updates.bot_user_id = last.toUserId;
+      updates.bot_context_token = last.contextToken;
+    }
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('user_settings').update(updates).eq('id', row.id);
+    }
   }
 
   const results: string[] = [];
