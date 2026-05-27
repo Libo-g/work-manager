@@ -15,7 +15,7 @@ export async function GET() {
     .maybeSingle();
 
   const row = config as { id?: string; bot_cursor?: string; ilink_token?: string } | null;
-  const ilinkToken = token || row?.ilink_token || '';
+  const ilinkToken = row?.ilink_token || token || '';
   if (!ilinkToken) {
     return NextResponse.json({ success: false, message: 'iLink token 未配置' });
   }
