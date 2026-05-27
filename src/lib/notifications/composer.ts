@@ -125,8 +125,13 @@ export function composeMorningReport(
     });
   }
 
-  // Due this week
-  const urgent = [...inProgressWeek, ...upcoming].slice(0, 6);
+  // Due this week — deduplicate by task id
+  const seen = new Set<string>();
+  const urgent = [...inProgressWeek, ...upcoming].filter((t) => {
+    if (seen.has(t.id)) return false;
+    seen.add(t.id);
+    return true;
+  }).slice(0, 6);
   if (urgent.length > 0) {
     lines.push(`\n\n📌 本周内到期`);
     urgent.forEach((t) => {
