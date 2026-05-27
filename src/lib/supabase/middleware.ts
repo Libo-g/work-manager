@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import WebSocket from 'ws';
 
 export async function updateSession(request: NextRequest) {
   const supabaseResponse = NextResponse.next({ request });
@@ -21,6 +22,7 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+      realtime: { transport: WebSocket as unknown as typeof globalThis.WebSocket },
     }
   );
 
