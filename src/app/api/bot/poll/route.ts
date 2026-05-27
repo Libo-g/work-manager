@@ -50,7 +50,8 @@ export async function GET() {
     const parsed = parseTaskCommand(msg.text);
 
     if (!parsed) {
-      await sendReply(ilinkToken, msg.toUserId, msg.contextToken, HELP_TEXT);
+      // Temporarily disable reply to isolate bot disconnect issue
+      console.log('Bot received:', msg.text, 'from:', msg.fromUserId);
       results.push('help');
       continue;
     }
