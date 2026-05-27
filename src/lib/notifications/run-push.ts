@@ -26,7 +26,8 @@ async function sendMorningPush(
   ]);
 
   const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
-  return sendIlinkPush(user.ilink_token, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
+  const ilinkToken = user.ilink_token || process.env.ILINK_BOT_TOKEN || '';
+  return sendIlinkPush(ilinkToken, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
 }
 
 async function sendEveningPush(
@@ -44,7 +45,8 @@ async function sendEveningPush(
   const { title, content } = composeEveningReport(
     summary, overdue, doneTasks, inProgressTasks, todoTasks
   );
-  return sendIlinkPush(user.ilink_token, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
+  const ilinkToken = user.ilink_token || process.env.ILINK_BOT_TOKEN || '';
+  return sendIlinkPush(ilinkToken, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
 }
 
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {
