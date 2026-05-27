@@ -15,18 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://work-manager-vercel.vercel.app/api/cron/push?type=morning"
+          curl -sf "https://www.ci227.cn/api/cron/push?type=morning"
 
   evening-push:
     if: github.event.schedule == '20 9 * * *'
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://work-manager-vercel.vercel.app/api/cron/push?type=evening"
+          curl -sf "https://www.ci227.cn/api/cron/push?type=evening"
 
   bot-poll:
     if: github.event.schedule == '* * * * *'
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://work-manager-vercel.vercel.app/api/bot/poll"
+          curl -sf "https://www.ci227.cn/api/bot/poll"
