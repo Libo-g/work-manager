@@ -125,28 +125,37 @@ export function composeMorningReport(
     });
   }
 
-  // Due this week — deduplicate by task id
-  const seen = new Set<string>();
-  const urgent = [...inProgressWeek, ...upcoming].filter((t) => {
-    if (seen.has(t.id)) return false;
-    seen.add(t.id);
-    return true;
-  }).slice(0, 6);
-  if (urgent.length > 0) {
-    lines.push(`\n\n📌 本周内到期`);
-    urgent.forEach((t) => {
+  // Due this week — use upcoming, excluding those already shown in inProgressWeek
+  const inProgressIds = new Set(inProgressWeek.map((t) => t.id));
+  const upcomingOnly = upcoming.filter((t) => !inProgressIds.has(t.id));
+
+  if (inProgressWeek.length > 0) {
+    lines.push(`\n\n📌 进行中·本周到期 (${inProgressWeek.length})`);
+    inProgressWeek.slice(0, 5).forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
         const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
         lines.push(`${taskLine(t)} - ${label}`);
-      } else if (t.next_due_date) {
-        const d = daysUntil(t.next_due_date);
-        lines.push(`${taskLine(t)} - 还剩 ${d} 天`);
       }
     });
   }
 
-  if (overdue.length === 0 && urgent.length === 0) {
+  if (upcomingOnly.length > 0) {
+    lines.push(`\n\n⏰ 即将到期 (${upcomingOnly.length})`);
+    upcomingOnly.slice(0, 5).forEach((t) => {
+      const dateField = t.next_due_date ?? t.due_date;
+      if (dateField) {
+        const d = daysUntil(dateField);
+        const typeLabel = t.recurrence_type
+          ? ` [${RECURRENCE_LABELS[t.recurrence_type as RecurrenceType]}]`
+          : '';
+        const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
+        lines.push(`${taskLine(t)}${typeLabel} - ${label}`);
+      }
+    });
+  }
+
+  if (overdue.length === 0 && inProgressWeek.length === 0 && upcomingOnly.length === 0) {
     lines.push('\n\n✨ 暂无逾期或紧急任务，继续保持！');
   }
 
