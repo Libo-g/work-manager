@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/service';
-import { sendIlinkPush } from './ilink-send';
+import { sendPushPlus } from './pushplus';
 import {
   getActiveUsers,
   getOverdueTasks,
@@ -26,8 +26,7 @@ async function sendMorningPush(
   ]);
 
   const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
-  const ilinkToken = user.ilink_token || process.env.ILINK_BOT_TOKEN || '';
-  return sendIlinkPush(ilinkToken, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
+  return sendPushPlus(user.pushplus_token, title, `${title}\n\n${content}`);
 }
 
 async function sendEveningPush(
@@ -45,8 +44,7 @@ async function sendEveningPush(
   const { title, content } = composeEveningReport(
     summary, overdue, doneTasks, inProgressTasks, todoTasks
   );
-  const ilinkToken = user.ilink_token || process.env.ILINK_BOT_TOKEN || '';
-  return sendIlinkPush(ilinkToken, user.bot_user_id, user.bot_context_token, `${title}\n\n${content}`);
+  return sendPushPlus(user.pushplus_token, title, `${title}\n\n${content}`);
 }
 
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {

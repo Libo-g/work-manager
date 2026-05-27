@@ -7,11 +7,11 @@ export async function getActiveUsers(
 ): Promise<UserSettingsRow[]> {
   const { data, error } = await supabase
     .from('user_settings')
-    .select('user_id, bot_user_id, bot_context_token, ilink_token, notifications_enabled');
+    .select('user_id, pushplus_token, notifications_enabled');
 
   if (error || !data) return [];
   return (data as UserSettingsRow[]).filter(
-    (row) => row.notifications_enabled && row.bot_user_id
+    (row) => row.notifications_enabled && row.pushplus_token
   );
 }
 

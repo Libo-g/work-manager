@@ -15,21 +15,21 @@ function getErrorMessage(e: unknown): string {
 export function PushNotification() {
   const { data: settings } = useUserSettings();
   const upsertSettings = useUpsertUserSettings();
-  const [ilinkToken, setIlinkToken] = useState('');
+  const [token, setToken] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => {
-    if (settings?.ilink_token) {
-      setIlinkToken(settings.ilink_token);
+    if (settings?.pushplus_token) {
+      setToken(settings.pushplus_token);
     }
   }, [settings]);
 
   const enabled = settings?.notifications_enabled ?? true;
 
-  async function handleSaveIlinkToken() {
+  async function handleSaveToken() {
     try {
-      await upsertSettings.mutateAsync({ ilink_token: ilinkToken.trim() });
-      showSuccess('iLink Token 已保存');
+      await upsertSettings.mutateAsync({ pushplus_token: token.trim() });
+      showSuccess('Token 已保存');
     } catch (e: unknown) {
       showError(`保存失败：${getErrorMessage(e)}`);
     }
@@ -45,8 +45,8 @@ export function PushNotification() {
   }
 
   async function handleTestPush() {
-    if (!ilinkToken.trim()) {
-      showError('请先填写 iLink Bot Token');
+    if (!token.trim()) {
+      showError('请先填写 PushPlus Token');
       return;
     }
     setSendingTest(true);
@@ -76,28 +76,34 @@ export function PushNotification() {
       <CardContent className="space-y-4">
         <div>
           <label className="text-sm font-medium text-zinc-700 mb-1 block">
-            iLink Bot Token
+            PushPlus Token
           </label>
           <p className="text-xs text-zinc-400 mb-2">
-            在终端运行 node scripts/get-ilink-token.mjs 获取 token，用于微信收发消息
+            前往
+            <a
+              href="https://www.pushplus.plus"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 mx-1 hover:underline"
+            >
+              pushplus.plus
+            </a>
+            注册并绑定微信 ClawBot 后获取 token
           </p>
           <div className="flex gap-2">
             <Input
-              placeholder="输入 iLink bot token"
-              value={ilinkToken}
-              onChange={(e) => setIlinkToken(e.target.value)}
+              placeholder="输入 PushPlus token"
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
             />
             <Button
               variant="outline"
-              onClick={handleSaveIlinkToken}
+              onClick={handleSaveToken}
               disabled={upsertSettings.isPending}
             >
               保存
             </Button>
           </div>
-          {settings?.bot_user_id && (
-            <p className="text-xs text-green-600 mt-1">已绑定微信用户，可正常收发消息</p>
-          )}
         </div>
 
         <div className="flex items-center justify-between rounded-md border px-3 py-3">
@@ -143,7 +149,7 @@ export function PushNotification() {
         </div>
 
         <p className="text-xs text-zinc-400">
-          iLink Bot 统一处理微信消息收发和定时推送。每 24 小时需在微信中主动发一条消息激活
+          前往 pushplus.plus 注册，绑定微信 ClawBot 获取 token 后填入上方
         </p>
       </CardContent>
     </Card>

@@ -30,7 +30,7 @@ export function useUpsertUserSettings() {
 
   return useMutation({
     mutationFn: async (input: {
-      ilink_token?: string;
+      pushplus_token?: string;
       notifications_enabled?: boolean;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
