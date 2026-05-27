@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 
 export function createServiceClient() {
   const url = 'https://gtmhnkalwlstkrxxutxv.supabase.co';
@@ -8,5 +9,7 @@ export function createServiceClient() {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is not set');
   }
 
-  return createClient(url, key);
+  return createClient(url, key, {
+    realtime: { transport: WebSocket as unknown as typeof globalThis.WebSocket },
+  });
 }

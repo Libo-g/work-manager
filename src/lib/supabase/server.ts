@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import WebSocket from 'ws';
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -18,6 +19,7 @@ export async function createClient() {
           );
         },
       },
+      realtime: { transport: WebSocket as unknown as typeof globalThis.WebSocket },
     }
   );
 }
