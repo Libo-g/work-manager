@@ -90,16 +90,14 @@ function pick(arr: string[]): string {
 export function composeMorningReport(
   summary: DailySummary,
   overdue: TaskWithProject[],
-  _upcoming: TaskWithProject[],
-  inProgressWeek: TaskWithProject[],
-  todoWeek: TaskWithProject[]
+  upcomingTasks: TaskWithProject[]
 ): { title: string; content: string } {
   const lines: string[] = [];
   const dateStr = todayString();
 
   lines.push(pick(MORNING_GREETINGS));
 
-  const upcoming = sortByPriority([...inProgressWeek, ...todoWeek]);
+  const upcoming = sortByPriority(upcomingTasks);
   if (upcoming.length > 0) {
     lines.push(`\n📌 待办 (${upcoming.length})`);
     upcoming.forEach((t) => {

@@ -5,7 +5,6 @@ import {
   getOverdueTasks,
   getDailySummary,
   getDoneTasks,
-  getInProgressInWeek,
   getInProgressTasks,
   getTodoTasks,
   getUpcomingWeekTasks,
@@ -18,14 +17,13 @@ async function sendMorningPush(
   supabase: SupabaseClient,
   user: UserSettingsRow
 ): Promise<PushResult> {
-  const [overdue, summary, inProgressWeek, todoWeek] = await Promise.all([
+  const [overdue, summary, todoWeek] = await Promise.all([
     getOverdueTasks(supabase, user.user_id),
     getDailySummary(supabase, user.user_id),
-    getInProgressInWeek(supabase, user.user_id),
     getUpcomingWeekTasks(supabase, user.user_id),
   ]);
 
-  const { title, content } = composeMorningReport(summary, overdue, [], inProgressWeek, todoWeek);
+  const { title, content } = composeMorningReport(summary, overdue, todoWeek);
   return sendPushPlus(user.pushplus_token, title, content);
 }
 
