@@ -28,4 +28,7 @@ export interface UserSettingsRow {
   user_id: string;
   pushplus_token: string;
   notifications_enabled: boolean;
+  bot_user_id: string | null;
+  bot_context_token: string | null;
+  ilink_token: string | null;
 }
