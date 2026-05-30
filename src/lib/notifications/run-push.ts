@@ -3,12 +3,12 @@ import { sendPushPlus } from './pushplus';
 import {
   getActiveUsers,
   getOverdueTasks,
-  getUpcomingTasks,
   getDailySummary,
   getDoneTasks,
   getInProgressInWeek,
   getInProgressTasks,
   getTodoTasks,
+  getUpcomingWeekTasks,
 } from './queries';
 import { composeMorningReport, composeAfternoonReport, composeEveningReport } from './composer';
 import type { PushResult, PushType, UserSettingsRow } from './types';
@@ -18,14 +18,14 @@ async function sendMorningPush(
   supabase: SupabaseClient,
   user: UserSettingsRow
 ): Promise<PushResult> {
-  const [overdue, upcoming, summary, inProgressWeek] = await Promise.all([
+  const [overdue, summary, inProgressWeek, todoWeek] = await Promise.all([
     getOverdueTasks(supabase, user.user_id),
-    getUpcomingTasks(supabase, user.user_id),
     getDailySummary(supabase, user.user_id),
     getInProgressInWeek(supabase, user.user_id),
+    getUpcomingWeekTasks(supabase, user.user_id),
   ]);
 
-  const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
+  const { title, content } = composeMorningReport(summary, overdue, [], inProgressWeek, todoWeek);
   return sendPushPlus(user.pushplus_token, title, content);
 }
 
