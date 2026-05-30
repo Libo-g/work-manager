@@ -4,6 +4,8 @@ on:
   schedule:
     # 8:15 北京 (00:15 UTC)
     - cron: '15 0 * * *'
+    # 14:30 北京 (06:30 UTC)
+    - cron: '30 6 * * *'
     # 17:20 北京 (09:20 UTC)
     - cron: '20 9 * * *'
     # Bot 轮询：每分钟
@@ -15,18 +17,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://www.ci227.cn/api/cron/push?type=morning"
+          curl -sfk "https://www.ci227.cn/api/cron/push?type=morning"
+
+  afternoon-push:
+    if: github.event.schedule == '30 6 * * *'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -sfk "https://www.ci227.cn/api/cron/push?type=afternoon"
 
   evening-push:
     if: github.event.schedule == '20 9 * * *'
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://www.ci227.cn/api/cron/push?type=evening"
+          curl -sfk "https://www.ci227.cn/api/cron/push?type=evening"
 
   bot-poll:
     if: github.event.schedule == '* * * * *'
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sf "https://www.ci227.cn/api/bot/poll"
+          curl -sfk "https://www.ci227.cn/api/bot/poll"
