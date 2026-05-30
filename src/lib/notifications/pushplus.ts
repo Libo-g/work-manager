@@ -11,7 +11,7 @@ export async function sendPushPlus(token: string, title: string, content: string
         token,
         title,
         content,
-        channel: 'wechat',
+        channel: 'clawbot',
         template: 'html',
       }),
     });
