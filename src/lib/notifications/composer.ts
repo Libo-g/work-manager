@@ -32,7 +32,6 @@ function sortByPriority(tasks: TaskWithProject[]): TaskWithProject[] {
     const pa = PRIORITY_ORDER[a.priority] ?? 2;
     const pb = PRIORITY_ORDER[b.priority] ?? 2;
     if (pa !== pb) return pa - pb;
-    // secondary sort: due_date ascending
     if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
     if (a.due_date) return -1;
     if (b.due_date) return 1;
@@ -40,15 +39,11 @@ function sortByPriority(tasks: TaskWithProject[]): TaskWithProject[] {
   });
 }
 
-function taskHtml(task: TaskWithProject, extra?: string): string {
+function taskLine(task: TaskWithProject, extra?: string): string {
   const project = task.projects?.name ?? '未分类';
   const icon = PRIORITY_ICON[task.priority] ?? '🟡';
-  const suffix = extra ? ` <span style="color:#888;font-size:12px">${extra}</span>` : '';
-  return `<div style="padding:2px 0">${icon} <b>[${project}]</b> ${task.title}${suffix}</div>`;
-}
-
-function sectionHeader(icon: string, label: string, count: number): string {
-  return `<div style="margin-top:12px;margin-bottom:4px;font-weight:bold">${icon} ${label}（${count}）</div>`;
+  const suffix = extra ? ` (${extra})` : '';
+  return `${icon} [${project}] ${task.title}${suffix}`;
 }
 
 const MORNING_GREETINGS = [
@@ -90,10 +85,6 @@ function pick(arr: string[]): string {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function wrapHtml(body: string): string {
-  return `<div style="font-size:14px;line-height:1.8;padding:4px 0">${body}</div>`;
-}
-
 // --- Morning ---
 
 export function composeMorningReport(
@@ -103,45 +94,43 @@ export function composeMorningReport(
   inProgressWeek: TaskWithProject[],
   todoWeek: TaskWithProject[]
 ): { title: string; content: string } {
+  const lines: string[] = [];
   const dateStr = todayString();
-  const parts: string[] = [];
 
-  parts.push(`<div>${pick(MORNING_GREETINGS)}</div>`);
+  lines.push(pick(MORNING_GREETINGS));
 
   const upcoming = sortByPriority([...inProgressWeek, ...todoWeek]);
   if (upcoming.length > 0) {
-    parts.push(sectionHeader('📌', '待办', upcoming.length));
+    lines.push(`\n📌 待办 (${upcoming.length})`);
     upcoming.forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
-        const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
-        parts.push(taskHtml(t, label));
+        const label = d <= 0 ? '今日到期' : `还剩${d}天`;
+        lines.push(taskLine(t, label));
       } else {
-        parts.push(taskHtml(t));
+        lines.push(taskLine(t));
       }
     });
   }
 
   if (overdue.length > 0) {
     const sorted = sortByPriority(overdue);
-    parts.push(sectionHeader('⚠️', '逾期', overdue.length));
+    lines.push(`\n⚠️ 逾期 (${overdue.length})`);
     sorted.forEach((t) => {
       const d = t.due_date ? daysUntil(t.due_date) : 0;
-      const label = d < 0 ? `逾期 ${Math.abs(d)} 天` : '逾期';
-      parts.push(taskHtml(t, label));
+      const label = d < 0 ? `逾期${Math.abs(d)}天` : '逾期';
+      lines.push(taskLine(t, label));
     });
   }
 
   if (upcoming.length === 0 && overdue.length === 0) {
-    parts.push('<div style="margin-top:12px">✨ 暂无待办或逾期任务，继续保持！</div>');
+    lines.push('\n✨ 暂无待办或逾期任务，继续保持！');
   }
 
-  parts.push(
-    `<div style="margin-top:12px;color:#888;font-size:12px">📊 共 ${summary.total} 项｜进行中 ${summary.inProgress}｜待处理 ${summary.todo}</div>`
-  );
-  parts.push(`<div style="margin-top:4px">${pick(MORNING_CLOSINGS)}</div>`);
+  lines.push(`\n📊 共${summary.total}项 | 进行中${summary.inProgress} | 待处理${summary.todo}`);
+  lines.push(`\n${pick(MORNING_CLOSINGS)}`);
 
-  return { title: `【任务提醒】${dateStr}`, content: wrapHtml(parts.join('')) };
+  return { title: `【任务提醒】${dateStr}`, content: lines.join('\n') };
 }
 
 // --- Afternoon ---
@@ -152,10 +141,10 @@ export function composeAfternoonReport(
   inProgressTasks: TaskWithProject[],
   todoTasks: TaskWithProject[]
 ): { title: string; content: string } {
+  const lines: string[] = [];
   const dateStr = todayString();
-  const parts: string[] = [];
 
-  parts.push(`<div>${pick(AFTERNOON_GREETINGS)}</div>`);
+  lines.push(pick(AFTERNOON_GREETINGS));
 
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -172,38 +161,36 @@ export function composeAfternoonReport(
   );
 
   if (upcoming.length > 0) {
-    parts.push(sectionHeader('📌', '待办', upcoming.length));
+    lines.push(`\n📌 待办 (${upcoming.length})`);
     upcoming.slice(0, 10).forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
-        const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
-        parts.push(taskHtml(t, label));
+        const label = d <= 0 ? '今日到期' : `还剩${d}天`;
+        lines.push(taskLine(t, label));
       } else {
-        parts.push(taskHtml(t));
+        lines.push(taskLine(t));
       }
     });
   }
 
   if (overdue.length > 0) {
     const sorted = sortByPriority(overdue);
-    parts.push(sectionHeader('⚠️', '逾期', overdue.length));
+    lines.push(`\n⚠️ 逾期 (${overdue.length})`);
     sorted.slice(0, 5).forEach((t) => {
       const d = t.due_date ? daysUntil(t.due_date) : 0;
-      const label = d < 0 ? `逾期 ${Math.abs(d)} 天` : '逾期';
-      parts.push(taskHtml(t, label));
+      const label = d < 0 ? `逾期${Math.abs(d)}天` : '逾期';
+      lines.push(taskLine(t, label));
     });
   }
 
   if (upcoming.length === 0 && overdue.length === 0) {
-    parts.push('<div style="margin-top:12px">✨ 暂无待办或逾期任务</div>');
+    lines.push('\n✨ 暂无待办或逾期任务');
   }
 
-  parts.push(
-    `<div style="margin-top:12px;color:#888;font-size:12px">📊 共 ${summary.total} 项｜已完成 ${summary.done}｜进行中 ${summary.inProgress}｜待处理 ${summary.todo}</div>`
-  );
-  parts.push(`<div style="margin-top:4px">${pick(AFTERNOON_CLOSINGS)}</div>`);
+  lines.push(`\n📊 共${summary.total}项 | 已完成${summary.done} | 进行中${summary.inProgress} | 待处理${summary.todo}`);
+  lines.push(`\n${pick(AFTERNOON_CLOSINGS)}`);
 
-  return { title: `【下午进度】${dateStr}`, content: wrapHtml(parts.join('')) };
+  return { title: `【下午进度】${dateStr}`, content: lines.join('\n') };
 }
 
 // --- Evening ---
@@ -215,14 +202,14 @@ export function composeEveningReport(
   inProgressTasks: TaskWithProject[],
   todoTasks: TaskWithProject[]
 ): { title: string; content: string } {
+  const lines: string[] = [];
   const dateStr = todayString();
-  const parts: string[] = [];
 
-  parts.push(`<div>${pick(EVENING_GREETINGS)}</div>`);
+  lines.push(pick(EVENING_GREETINGS));
 
   if (doneTasks.length > 0) {
-    parts.push(sectionHeader('✅', '今日完成', doneTasks.length));
-    doneTasks.slice(0, 5).forEach((t) => parts.push(taskHtml(t)));
+    lines.push(`\n✅ 今日完成 (${doneTasks.length})`);
+    doneTasks.slice(0, 5).forEach((t) => lines.push(taskLine(t)));
   }
 
   const now = new Date();
@@ -240,33 +227,31 @@ export function composeEveningReport(
   );
 
   if (upcoming.length > 0) {
-    parts.push(sectionHeader('📌', '待办', upcoming.length));
+    lines.push(`\n📌 待办 (${upcoming.length})`);
     upcoming.slice(0, 5).forEach((t) => {
       if (t.due_date) {
         const d = daysUntil(t.due_date);
-        const label = d <= 0 ? '今日到期' : `还剩 ${d} 天`;
-        parts.push(taskHtml(t, label));
+        const label = d <= 0 ? '今日到期' : `还剩${d}天`;
+        lines.push(taskLine(t, label));
       } else {
-        parts.push(taskHtml(t));
+        lines.push(taskLine(t));
       }
     });
   }
 
   if (overdue.length > 0) {
     const sorted = sortByPriority(overdue);
-    parts.push(sectionHeader('⚠️', '逾期', overdue.length));
+    lines.push(`\n⚠️ 逾期 (${overdue.length})`);
     sorted.slice(0, 3).forEach((t) => {
       const d = t.due_date ? daysUntil(t.due_date) : 0;
-      const label = d < 0 ? `逾期 ${Math.abs(d)} 天` : '逾期';
-      parts.push(taskHtml(t, label));
+      const label = d < 0 ? `逾期${Math.abs(d)}天` : '逾期';
+      lines.push(taskLine(t, label));
     });
   }
 
   const pct = summary.total > 0 ? Math.round((summary.done / summary.total) * 100) : 0;
-  parts.push(
-    `<div style="margin-top:12px;color:#888;font-size:12px">📊 完成率 ${pct}%｜待处理 ${summary.todo}</div>`
-  );
-  parts.push(`<div style="margin-top:4px">${pick(EVENING_CLOSINGS)}</div>`);
+  lines.push(`\n📊 完成率${pct}% | 待处理${summary.todo}`);
+  lines.push(`\n${pick(EVENING_CLOSINGS)}`);
 
-  return { title: `【工作总结】${dateStr}`, content: wrapHtml(parts.join('')) };
+  return { title: `【工作总结】${dateStr}`, content: lines.join('\n') };
 }

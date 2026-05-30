@@ -12,7 +12,7 @@ export async function sendPushPlus(token: string, title: string, content: string
         title,
         content,
         channel: 'clawbot',
-        template: 'html',
+        template: 'txt',
       }),
     });
 
