@@ -1,15 +1,18 @@
 name: Scheduled Tasks
 
+# 定时触发已迁移到腾讯云 SCF（云函数）
+# 如需恢复 GitHub Actions 触发，取消下面的注释并注释掉 workflow_dispatch
 on:
-  schedule:
-    # 8:15 北京 (00:15 UTC)
-    - cron: '15 0 * * *'
-    # 14:30 北京 (06:30 UTC)
-    - cron: '30 6 * * *'
-    # 17:20 北京 (09:20 UTC)
-    - cron: '20 9 * * *'
-    # Bot 轮询：每分钟
-    - cron: '* * * * *'
+  # schedule:
+  #   # 8:15 北京 (00:15 UTC)
+  #   - cron: '15 0 * * *'
+  #   # 14:30 北京 (06:30 UTC)
+  #   - cron: '30 6 * * *'
+  #   # 17:20 北京 (09:20 UTC)
+  #   - cron: '20 9 * * *'
+  #   # Bot 轮询：每分钟
+  #   - cron: '* * * * *'
+  workflow_dispatch:
 
 jobs:
   morning-push:
