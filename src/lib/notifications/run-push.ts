@@ -1,6 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/service';
 import { sendPushPlus } from './pushplus';
-import { sendReply } from '@/lib/bot/ilink';
 import {
   getActiveUsers,
   getOverdueTasks,
@@ -15,52 +14,6 @@ import { composeMorningReport, composeAfternoonReport, composeEveningReport } fr
 import type { PushResult, PushType, UserSettingsRow } from './types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-async function sendViaILink(
-  user: UserSettingsRow,
-  title: string,
-  content: string
-): Promise<PushResult> {
-  if (!user.bot_user_id || !user.bot_context_token) {
-    return { success: false, message: 'iLink bot 信息不完整' };
-  }
-
-  const token = user.ilink_token || process.env.ILINK_BOT_TOKEN || '';
-  if (!token) {
-    return { success: false, message: 'iLink token 未配置' };
-  }
-
-  const text = `${title}\n\n${content}`;
-  const ok = await sendReply(token, user.bot_user_id, user.bot_context_token, text);
-  return ok
-    ? { success: true, message: 'iLink 发送成功' }
-    : { success: false, message: 'iLink 发送失败' };
-}
-
-function sendViaPushPlus(
-  user: UserSettingsRow,
-  title: string,
-  content: string
-): Promise<PushResult> {
-  if (!user.pushplus_token) {
-    return Promise.resolve({ success: false, message: 'PushPlus token 未配置' });
-  }
-  return sendPushPlus(user.pushplus_token, title, content);
-}
-
-async function pushMessage(
-  user: UserSettingsRow,
-  title: string,
-  content: string
-): Promise<PushResult> {
-  // 优先 iLink bot
-  const iLinkResult = await sendViaILink(user, title, content);
-  if (iLinkResult.success) return iLinkResult;
-
-  // fallback PushPlus
-  console.log(`iLink 推送失败 (${iLinkResult.message})，fallback 到 PushPlus`);
-  return sendViaPushPlus(user, title, content);
-}
-
 async function sendMorningPush(
   supabase: SupabaseClient,
   user: UserSettingsRow
@@ -73,7 +26,7 @@ async function sendMorningPush(
   ]);
 
   const { title, content } = composeMorningReport(summary, overdue, upcoming, inProgressWeek);
-  return pushMessage(user, title, content);
+  return sendPushPlus(user.pushplus_token, title, content);
 }
 
 async function sendEveningPush(
@@ -91,7 +44,7 @@ async function sendEveningPush(
   const { title, content } = composeEveningReport(
     summary, overdue, doneTasks, inProgressTasks, todoTasks
   );
-  return pushMessage(user, title, content);
+  return sendPushPlus(user.pushplus_token, title, content);
 }
 
 async function sendAfternoonPush(
@@ -106,7 +59,7 @@ async function sendAfternoonPush(
   ]);
 
   const { title, content } = composeAfternoonReport(summary, overdue, inProgressTasks, todoTasks);
-  return pushMessage(user, title, content);
+  return sendPushPlus(user.pushplus_token, title, content);
 }
 
 export async function runPushNotifications(type: PushType): Promise<PushResult[]> {
