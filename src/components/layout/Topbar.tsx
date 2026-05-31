@@ -2,7 +2,8 @@
 
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, User } from 'lucide-react';
+import { Menu, LogOut, User, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useState, useRef, useEffect } from 'react';
 
 interface TopbarProps {
@@ -11,6 +12,7 @@ interface TopbarProps {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -31,36 +33,45 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   }, [menuOpen]);
 
   return (
-    <header className="z-30 flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-4">
+    <header className="z-30 flex h-14 shrink-0 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-lg font-bold text-zinc-900">工作任务管理</h1>
+        <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">工作任务管理</h1>
       </div>
 
-      <div className="relative" ref={menuRef}>
+      <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="inline-flex items-center justify-center rounded-full h-9 w-9 bg-zinc-100 hover:bg-zinc-200 transition-colors text-zinc-600"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="inline-flex items-center justify-center rounded-full h-9 w-9 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-zinc-600 dark:text-zinc-300"
         >
-          <User className="h-5 w-5" />
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
+        <div className="relative" ref={menuRef}>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="inline-flex items-center justify-center rounded-full h-9 w-9 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition-colors text-zinc-600 dark:text-zinc-300"
+          >
+            <User className="h-5 w-5" />
+          </button>
 
-        {menuOpen && (
-          <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border bg-white shadow-lg z-50 py-1">
-            <div className="px-3 py-2 text-sm text-zinc-500 border-b truncate">{user?.email}</div>
-            <button
-              type="button"
-              onClick={() => { setMenuOpen(false); signOut(); }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-zinc-50 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              退出登录
-            </button>
-          </div>
-        )}
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border bg-white dark:bg-zinc-800 dark:border-zinc-700 shadow-lg z-50 py-1">
+              <div className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400 border-b dark:border-zinc-700 truncate">{user?.email}</div>
+              <button
+                type="button"
+                onClick={() => { setMenuOpen(false); signOut(); }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                退出登录
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
