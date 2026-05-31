@@ -160,7 +160,9 @@ export function CreateTaskDialog({ open, onOpenChange, defaultProjectId }: Creat
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder={projects ? '选择项目' : '加载中...'} />
+                <SelectValue placeholder={projects ? '选择项目' : '加载中...'}>
+                  {projects?.find((p) => p.id === projectId)?.name ?? ''}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {projects?.map((p) => (
