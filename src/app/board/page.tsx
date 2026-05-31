@@ -5,12 +5,12 @@ import { BoardHeader } from '@/components/board/BoardHeader';
 import { BoardColumns } from '@/components/board/BoardColumns';
 import { TaskDrawer } from '@/components/board/TaskDrawer';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { useTasks, useCreateTask } from '@/lib/hooks/useTasks';
+import { CreateTaskDialog } from '@/components/shared/CreateTaskDialog';
+import { useTasks } from '@/lib/hooks/useTasks';
 import { useProjects } from '@/lib/hooks/useProjects';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { type Task, type TaskPriority, type TaskStatus, STATUS_LABELS } from '@/lib/types';
-import { showSuccess, showError } from '@/components/shared/Toast';
 import { FolderKanban, Plus, X } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
@@ -42,7 +42,7 @@ export default function BoardPage() {
 
   const { data: projects = [] } = useProjects();
   const { data: tasks = [], isLoading } = useTasks(selectedProject);
-  const createTask = useCreateTask();
+  const [createOpen, setCreateOpen] = useState(false);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -71,28 +71,6 @@ export default function BoardPage() {
   }
 
   const hasActiveFilter = statusFilter !== 'all' || dueFilter || priorityFilter !== 'all' || searchQuery;
-
-  async function handleQuickCreate() {
-    if (!selectedProject) {
-      showError('请先选择一个项目再创建任务');
-      return;
-    }
-    const title = window.prompt('输入任务标题:');
-    if (!title?.trim()) return;
-
-    try {
-      await createTask.mutateAsync({
-        project_id: selectedProject,
-        title: title.trim(),
-        status: 'todo',
-        position: 0,
-      });
-      showSuccess('任务已创建');
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '创建失败';
-      showError(`创建失败：${msg}`);
-    }
-  }
 
   return (
     <AppLayout>
@@ -138,7 +116,7 @@ export default function BoardPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <Button size="sm" variant="outline" className="gap-1" onClick={handleQuickCreate}>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" />
             新建任务
           </Button>
@@ -165,6 +143,12 @@ export default function BoardPage() {
         task={editingTask}
         open={!!editingTask}
         onClose={() => setEditingTask(null)}
+      />
+
+      <CreateTaskDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        defaultProjectId={selectedProject ?? undefined}
       />
     </AppLayout>
   );
