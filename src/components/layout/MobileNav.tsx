@@ -17,7 +17,7 @@ export function MobileNav() {
   const router = useRouter();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 bg-white">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
       <div className="flex items-center justify-around h-14">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
@@ -28,7 +28,7 @@ export function MobileNav() {
               onClick={() => router.push(item.href)}
               className={cn(
                 'flex flex-col items-center gap-0.5 px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer',
-                isActive ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'
+                isActive ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
               )}
             >
               <item.icon className="h-5 w-5" />

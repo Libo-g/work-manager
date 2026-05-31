@@ -15,7 +15,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   useAutoResetRecurring(user?.id);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-zinc-50">
+    <div className="h-screen flex flex-col overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       {/* Top banner — full width */}
       <Topbar onMenuClick={() => setMobileMenuOpen(true)} />
 
@@ -31,7 +31,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
         {/* Mobile sidebar sheet */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetContent side="left" className="w-56 p-0">
+          <SheetContent side="left" className="w-56 p-0 dark:bg-zinc-900">
             <Sidebar collapsed={false} onToggle={() => {}} />
           </SheetContent>
         </Sheet>
